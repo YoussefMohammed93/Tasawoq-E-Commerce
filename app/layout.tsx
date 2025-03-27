@@ -21,7 +21,7 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body className={`${elMessiri.variable} antialiased`}>
           <ConvexClientProvider>{children}</ConvexClientProvider>
         </body>
