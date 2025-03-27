@@ -23,7 +23,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
-import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 
 const products = [
@@ -104,7 +103,7 @@ export default function ProductsPage() {
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-5">
           <Heading
             title="المنتجات"
-            description="إدارة وعرض جميع المنتجات المتاحة في متجرك"
+            description="إدارة وعرض جميع المنتجات المتاحة في متجرك."
           />
           <Button variant="outline" className="gap-2">
             <PlusIcon className="h-4 w-4" />
@@ -112,7 +111,6 @@ export default function ProductsPage() {
           </Button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
         <Card className="border py-4">
           <CardContent>
@@ -175,9 +173,6 @@ export default function ProductsPage() {
           </CardContent>
         </Card>
       </div>
-
-      <Separator className="mb-6" />
-
       <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
         <div className="relative md:col-span-6">
           <SearchIcon className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -215,7 +210,6 @@ export default function ProductsPage() {
           </Select>
         </div>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-6">
         {products.map((product) => (
           <Card key={product.id} className="border p-0 pt-3 pr-3">

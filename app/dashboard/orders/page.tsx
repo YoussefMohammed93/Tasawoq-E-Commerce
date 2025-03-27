@@ -136,7 +136,7 @@ export default function OrdersPage() {
         <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-5">
           <Heading
             title="الطلبات"
-            description="إدارة وعرض جميع الطلبات الواردة في متجرك"
+            description="إدارة وعرض جميع الطلبات الواردة في متجرك."
           />
         </div>
       </div>
