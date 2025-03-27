@@ -28,8 +28,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { Input } from "@/components/ui/input";
-import { Heading } from "@/components/ui/heading";
 import { Button } from "@/components/ui/button";
+import { Heading } from "@/components/ui/heading";
 import { Card, CardContent } from "@/components/ui/card";
 
 const generateOrders = (count: number) => {

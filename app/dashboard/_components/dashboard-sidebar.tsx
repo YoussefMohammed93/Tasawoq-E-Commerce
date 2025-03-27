@@ -6,6 +6,7 @@ import {
   SettingsIcon,
   ShoppingCartIcon,
   UsersIcon as CustomersIcon,
+  StarIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -45,6 +46,12 @@ export function DashboardSidebar() {
       label: "العملاء",
       tooltip: "العملاء",
       href: "/dashboard/customers",
+    },
+    {
+      icon: StarIcon,
+      label: "التقييمات",
+      tooltip: "التقييمات",
+      href: "/dashboard/reviews",
     },
     {
       icon: SettingsIcon,
