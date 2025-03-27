@@ -55,7 +55,7 @@ export function DashboardSidebar() {
   ];
 
   return (
-    <Sidebar side="right" className="border-r bg-background">
+    <Sidebar side="right" className="border-r bg-background md:pt-14">
       <SidebarHeader className="px-4 h-14">
         <h2 className="text-lg font-bold">لوحة التحكم</h2>
       </SidebarHeader>

@@ -21,10 +21,10 @@ import { Heading } from "@/components/ui/heading";
 export default function DashboardPage() {
   return (
     <>
-      <div className="pt-[70px] mb-8">
+      <div className="pt-14 mb-8">
         <Heading
-          title="مرحباً بك في لوحة التحكم"
-          description="نظرة عامة على متجرك"
+          title="لوحة التحكم"
+          description="نظرة عامة على أداء متجرك وإحصائيات المبيعات والعملاء لتحسين استراتيجيتك التجارية."
         />
       </div>
 
