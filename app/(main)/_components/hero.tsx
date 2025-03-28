@@ -6,7 +6,7 @@ import { ArrowLeftIcon, ShoppingBagIcon } from "lucide-react";
 export const HeroSection = () => {
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
-      {/* <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-background/70 to-background/95" />
         <div className="absolute inset-0 opacity-30 mix-blend-soft-light">
           <div className="absolute inset-0 bg-[radial-gradient(circle_500px_at_50%_200px,var(--primary),transparent)]" />
@@ -28,7 +28,7 @@ export const HeroSection = () => {
         role="presentation"
         className="absolute hidden lg:block top-1/3 right-1/4 w-64 h-64 bg-secondary/20 rounded-full blur-3xl animate-pulse"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" /> */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       <div className="max-w-7xl mx-auto px-5 relative py-20 pt-28">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 xl:gap-16">
           <div className="flex flex-col justify-center space-y-4 max-w-xl">
