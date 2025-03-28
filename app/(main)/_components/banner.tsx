@@ -8,7 +8,7 @@ import { MessageCircleIcon, SendIcon } from "lucide-react";
 
 export const BannerSection = () => {
   return (
-    <section className="py-16 bg-background relative overflow-hidden">
+    <section className="py-12 bg-background relative overflow-hidden">
       <div className="absolute inset-0 bg-primary/5" />
       <div className="max-w-7xl mx-auto px-5 relative">
         <div className="grid md:grid-cols-2 gap-8 items-center">

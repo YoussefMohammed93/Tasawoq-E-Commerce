@@ -26,7 +26,7 @@ const features = [
 
 export const FeaturesSection = () => {
   return (
-    <section className="pb-16 bg-background">
+    <section className="py-12 bg-background">
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-12">
           <SectionHeading

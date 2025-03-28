@@ -63,7 +63,7 @@ export function Footer() {
             <Link href="/" className="flex items-center gap-2 relative">
               <span className="text-2xl font-bold text-primary">تسوق</span>
             </Link>
-            <p className="mt-4 text-muted-foreground text-sm md:max-w-sm">
+            <p className="mt-4 text-muted-foreground text-sm md:max-w-xs">
               نقدم لكم أفضل المنتجات بأعلى جودة وأفضل الأسعار. تسوق معنا واستمتع
               بتجربة تسوق فريدة مع خدمة عملاء متميزة وشحن سريع لجميع أنحاء
               المملكة.
