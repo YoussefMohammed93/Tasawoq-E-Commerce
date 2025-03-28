@@ -7,22 +7,21 @@ import { PartnersSection } from "./_components/partners";
 import { CategoriesSection } from "./_components/categories";
 import { ReviewsSection } from "./_components/reviews";
 import { NewArrivalsSection } from "./_components/new-arrivals";
+import { SalesSection } from "./_components/sales";
 
 export default function HomePage() {
   return (
     <>
       <HeroSection />
       <CategoriesSection />
+      <SalesSection />
       <NewArrivalsSection />
-      <FeaturesSection />
       <ProductsSection />
-      <PartnersSection />
       <BannerSection />
       <ReviewsSection />
+      <PartnersSection />
+      <FeaturesSection />
       <Footer />
     </>
   );
 }
-
-
-
