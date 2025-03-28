@@ -32,16 +32,52 @@ export function DashboardSidebar() {
 
   const mainSections = [
     {
-      label: "القسم الأول",
-      href: "/dashboard/sections/section1",
+      label: "الهيدر",
+      href: "/dashboard/sections/header",
     },
     {
-      label: "القسم الثاني",
-      href: "/dashboard/sections/section2",
+      label: "الرئيسي",
+      href: "/dashboard/sections/hero",
     },
     {
-      label: "القسم الثالث",
-      href: "/dashboard/sections/section3",
+      label: "الفئات",
+      href: "/dashboard/sections/categories",
+    },
+    {
+      label: "تخفيضات حصرية",
+      href: "/dashboard/sections/sales",
+    },
+    {
+      label: "وصل حديثا",
+      href: "/dashboard/sections/new-arrivals",
+    },
+    {
+      label: "منتجات مميزة",
+      href: "/dashboard/sections/featured-products",
+    },
+    {
+      label: "تواصل معنا",
+      href: "/dashboard/sections/contact",
+    },
+    {
+      label: "آراء العملاء",
+      href: "/dashboard/sections/reviews",
+    },
+    {
+      label: "شركاؤنا المعتمدون",
+      href: "/dashboard/sections/partners",
+    },
+    {
+      label: "نشرتنا البريدية",
+      href: "/dashboard/sections/newsletter",
+    },
+    {
+      label: "مميزات المتجر",
+      href: "/dashboard/sections/store-features",
+    },
+    {
+      label: "الفوتر",
+      href: "/dashboard/sections/footer",
     },
   ];
 
@@ -121,30 +157,35 @@ export function DashboardSidebar() {
                     <SidebarMenuSub>
                       {route.sections.map((section) => (
                         <SidebarMenuSubItem key={section.href}>
-                          <Link href={section.href} className="w-full">
-                            <SidebarMenuSubButton
-                              isActive={pathname === section.href}
+                          <SidebarMenuSubButton
+                            asChild={true}
+                            isActive={pathname === section.href}
+                          >
+                            <Link
+                              href={section.href}
+                              className="flex w-full items-center gap-2"
                             >
-                              <LayoutDashboardIcon className="h-4 w-4 ml-2" />
+                              <LayoutDashboardIcon className="h-4 w-4 ml-1" />
                               <span>{section.label}</span>
-                            </SidebarMenuSubButton>
-                          </Link>
+                            </Link>
+                          </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
                       ))}
                     </SidebarMenuSub>
                   )}
                 </>
               ) : (
-                <Link href={route.href} className="w-full">
-                  <SidebarMenuButton
-                    tooltip={route.tooltip}
-                    className="cursor-pointer"
-                    isActive={pathname === route.href}
-                  >
+                <SidebarMenuButton
+                  asChild={true}
+                  tooltip={route.tooltip}
+                  className="cursor-pointer"
+                  isActive={pathname === route.href}
+                >
+                  <Link href={route.href} className="flex w-full items-center">
                     <route.icon className="ml-1 h-5 w-5" />
                     <span>{route.label}</span>
-                  </SidebarMenuButton>
-                </Link>
+                  </Link>
+                </SidebarMenuButton>
               )}
             </SidebarMenuItem>
           ))}

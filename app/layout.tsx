@@ -2,7 +2,7 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import { El_Messiri } from "next/font/google";
-import { Header } from "@/components/ui/header";
+import { Toaster } from "@/components/ui/sonner";
 import { ConvexClientProvider } from "./convex-client-provider";
 
 const elMessiri = El_Messiri({
@@ -24,8 +24,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" suppressHydrationWarning>
         <body className={`${elMessiri.variable} antialiased`}>
-          <Header />
-          <ConvexClientProvider>{children}</ConvexClientProvider>
+          <ConvexClientProvider>
+            {children}
+            <Toaster richColors closeButton position="bottom-right" dir="rtl" />
+          </ConvexClientProvider>
         </body>
       </html>
     </ClerkProvider>

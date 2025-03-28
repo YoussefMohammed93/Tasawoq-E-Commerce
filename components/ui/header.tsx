@@ -9,22 +9,18 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { useQuery } from "convex/react";
 import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
+import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Heart, Search, Menu } from "lucide-react";
 
-const navigation = [
-  { name: "الرئيسية", href: "/" },
-  { name: "المنتجات", href: "/products" },
-  { name: "الفئات", href: "/categories" },
-  { name: "العروض", href: "/offers" },
-  { name: "تواصل معنا", href: "/contact" },
-];
-
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+
   const pathname = usePathname();
+  const headerLinks = useQuery(api.header.getHeaderLinks);
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -42,11 +38,10 @@ export function Header() {
               <span className="text-2xl font-bold text-primary">تسوق</span>
             </Link>
           </div>
-
           <div className="hidden md:flex items-center gap-6">
-            {navigation.map((item) => (
+            {headerLinks?.map((item) => (
               <Link
-                key={item.name}
+                key={item._id}
                 href={item.href}
                 className={cn(
                   "relative py-1.5 text-sm font-medium transition-colors",
@@ -61,7 +56,6 @@ export function Header() {
               </Link>
             ))}
           </div>
-
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
@@ -119,7 +113,6 @@ export function Header() {
             </Button>
           </div>
         </div>
-
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
           <SheetContent side="right" className="w-full max-w-xs p-0">
             <SheetHeader className="p-4 text-right border-b">
@@ -128,9 +121,9 @@ export function Header() {
             <div className="flex flex-col">
               <div className="flex-1 p-4">
                 <div className="space-y-1">
-                  {navigation.map((item) => (
+                  {headerLinks?.map((item) => (
                     <Link
-                      key={item.name}
+                      key={item._id}
                       href={item.href}
                       className={cn(
                         "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",

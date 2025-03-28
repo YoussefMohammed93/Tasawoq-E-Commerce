@@ -1,3 +1,4 @@
+import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
 import { HeroSection } from "./_components/hero";
 import { SalesSection } from "./_components/sales";
@@ -13,6 +14,7 @@ import { NewArrivalsSection } from "./_components/new-arrivals";
 export default function HomePage() {
   return (
     <>
+      <Header />
       <HeroSection />
       <CategoriesSection />
       <SalesSection />

@@ -9,4 +9,10 @@ export default defineSchema({
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
   }).index("byClerkUserId", ["clerkUserId"]),
+
+  headerLinks: defineTable({
+    name: v.string(),
+    href: v.string(),
+    order: v.number(),
+  }).index("by_order", ["order"]),
 });
