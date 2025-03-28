@@ -4,11 +4,13 @@ import { BannerSection } from "./_components/banner";
 import { ProductsSection } from "./_components/products";
 import { FeaturesSection } from "./_components/features";
 import { PartnersSection } from "./_components/partners";
+import { CategoriesSection } from "./_components/categories";
 
 export default function Main() {
   return (
     <main>
       <HeroSection />
+      <CategoriesSection />
       <FeaturesSection />
       <ProductsSection />
       <PartnersSection />
@@ -17,3 +19,4 @@ export default function Main() {
     </main>
   );
 }
+
