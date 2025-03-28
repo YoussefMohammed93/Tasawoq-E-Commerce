@@ -1,6 +1,6 @@
+import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardHeader } from "./_components/dashboard-header";
-import { SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
 import { DashboardSidebar } from "@/app/dashboard/_components/dashboard-sidebar";
 
 export default function DashboardLayout({

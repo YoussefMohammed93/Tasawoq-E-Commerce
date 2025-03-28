@@ -7,6 +7,9 @@ import {
   ShoppingCartIcon,
   UsersIcon as CustomersIcon,
   StarIcon,
+  ChevronDownIcon,
+  LayoutDashboardIcon,
+  LayoutIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -16,11 +19,31 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+
+  const mainSections = [
+    {
+      label: "القسم الأول",
+      href: "/dashboard/sections/section1",
+    },
+    {
+      label: "القسم الثاني",
+      href: "/dashboard/sections/section2",
+    },
+    {
+      label: "القسم الثالث",
+      href: "/dashboard/sections/section3",
+    },
+  ];
 
   const routes = [
     {
@@ -28,6 +51,12 @@ export function DashboardSidebar() {
       label: "الرئيسية",
       tooltip: "الرئيسية",
       href: "/dashboard",
+    },
+    {
+      icon: LayoutIcon,
+      label: "الأقسام",
+      tooltip: "الأقسام",
+      sections: mainSections,
     },
     {
       icon: PackageIcon,
@@ -68,18 +97,55 @@ export function DashboardSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarMenu>
-          {routes.map((route) => (
-            <SidebarMenuItem key={route.href}>
-              <Link href={route.href} className="w-full">
-                <SidebarMenuButton
-                  tooltip={route.tooltip}
-                  className="cursor-pointer"
-                  isActive={pathname === route.href}
-                >
-                  <route.icon className="ml-1 h-5 w-5" />
-                  <span>{route.label}</span>
-                </SidebarMenuButton>
-              </Link>
+          {routes.map((route, index) => (
+            <SidebarMenuItem key={route.href || index}>
+              {route.sections ? (
+                <>
+                  <SidebarMenuButton
+                    tooltip={route.tooltip}
+                    className="cursor-pointer"
+                    isActive={route.sections.some(
+                      (section) => pathname === section.href
+                    )}
+                    onClick={() => setIsOpen(!isOpen)}
+                  >
+                    <route.icon className="ml-1 h-5 w-5" />
+                    <span>{route.label}</span>
+                    <ChevronDownIcon
+                      className={`h-4 w-4 mr-auto transition-transform ${
+                        isOpen ? "transform rotate-180" : ""
+                      }`}
+                    />
+                  </SidebarMenuButton>
+                  {isOpen && (
+                    <SidebarMenuSub>
+                      {route.sections.map((section) => (
+                        <SidebarMenuSubItem key={section.href}>
+                          <Link href={section.href} className="w-full">
+                            <SidebarMenuSubButton
+                              isActive={pathname === section.href}
+                            >
+                              <LayoutDashboardIcon className="h-4 w-4 ml-2" />
+                              <span>{section.label}</span>
+                            </SidebarMenuSubButton>
+                          </Link>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  )}
+                </>
+              ) : (
+                <Link href={route.href} className="w-full">
+                  <SidebarMenuButton
+                    tooltip={route.tooltip}
+                    className="cursor-pointer"
+                    isActive={pathname === route.href}
+                  >
+                    <route.icon className="ml-1 h-5 w-5" />
+                    <span>{route.label}</span>
+                  </SidebarMenuButton>
+                </Link>
+              )}
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
