@@ -38,11 +38,8 @@ export function Header() {
       <nav className="max-w-7xl mx-auto px-5">
         <div className="flex h-16 items-center justify-between">
           <div className="flex-shrink-0">
-            <Link href="/" className="flex items-center gap-2 relative group">
-              <span className="text-2xl font-bold text-primary group-hover:scale-105 transition-transform">
-                تسوق
-              </span>
-              <span className="absolute -bottom-2 right-0 w-0 h-0.5 bg-primary transition-all group-hover:w-full" />
+            <Link href="/" className="flex items-center gap-2 relative">
+              <span className="text-2xl font-bold text-primary">تسوق</span>
             </Link>
           </div>
 

@@ -337,7 +337,7 @@ export const ProductsSection = () => {
             </>
           )}
           {loaded && instanceRef.current && (
-            <div className="flex flex-row-reverse justify-center gap-2 mt-4">
+            <div className="flex md:hidden flex-row-reverse justify-center gap-2 mt-4">
               {[...Array(instanceRef.current.track.details.slides.length)].map(
                 (_, idx) => (
                   <button
