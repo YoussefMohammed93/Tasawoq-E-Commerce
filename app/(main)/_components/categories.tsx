@@ -97,21 +97,31 @@ export const CategoriesSection = () => {
           className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 ${gridCols} gap-4`}
         >
           {categories.map((category) => (
-            <Link key={category.name} href={category.href}>
-              <Card className="group h-32 relative overflow-hidden">
+            <Link 
+              key={category.name} 
+              href={category.href}
+              className="block h-[160px]" // Fixed height container
+            >
+              <Card className="group h-full relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
                 <div
-                  className={`hidden md:block absolute inset-0 translate-x-[-100%] translate-y-[-100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-300 ease-in-out ${category.hoverColor} opacity-10`}
+                  className={`absolute inset-0 translate-x-[-100%] translate-y-[-100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-300 ease-in-out ${category.hoverColor} opacity-10`}
                 />
-                <div className="relative h-full flex flex-col items-center justify-center gap-3">
+                <div className="relative h-full w-full flex flex-col items-center justify-center gap-3">
                   <div
-                    className={`p-3 rounded-full ${category.color} transition-colors duration-300`}
+                    className={`w-14 h-14 flex items-center justify-center rounded-full ${category.color} transition-colors duration-300 transform group-hover:scale-110`}
                   >
                     <category.icon
-                      className={`h-6 w-6 transition-colors duration-300 ${category.hoverColor.replace("bg-", "group-hover:text-white")}`}
+                      className={`h-7 w-7 transition-colors duration-300 ${category.hoverColor.replace(
+                        "bg-",
+                        "group-hover:text-white"
+                      )}`}
                     />
                   </div>
                   <span
-                    className={`text-sm font-medium text-muted-foreground transition-colors duration-300 ${category.hoverColor.replace("bg-", "group-hover:text-")}`}
+                    className={`text-sm font-medium text-muted-foreground transition-colors duration-300 ${category.hoverColor.replace(
+                      "bg-",
+                      "group-hover:text-"
+                    )}`}
                   >
                     {category.name}
                   </span>
@@ -124,3 +134,5 @@ export const CategoriesSection = () => {
     </section>
   );
 };
+
+

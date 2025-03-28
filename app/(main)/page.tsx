@@ -5,18 +5,21 @@ import { ProductsSection } from "./_components/products";
 import { FeaturesSection } from "./_components/features";
 import { PartnersSection } from "./_components/partners";
 import { CategoriesSection } from "./_components/categories";
+import { ReviewsSection } from "./_components/reviews";
 
-export default function Main() {
+export default function HomePage() {
   return (
-    <main>
+    <>
       <HeroSection />
       <CategoriesSection />
       <FeaturesSection />
       <ProductsSection />
       <PartnersSection />
       <BannerSection />
+      <ReviewsSection />
       <Footer />
-    </main>
+    </>
   );
 }
+
 
