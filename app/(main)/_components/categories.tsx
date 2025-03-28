@@ -100,15 +100,15 @@ export const CategoriesSection = () => {
             <Link 
               key={category.name} 
               href={category.href}
-              className="block h-[160px]" // Fixed height container
+              className="block h-[160px]"
             >
-              <Card className="group h-full relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+              <Card className="group h-full relative overflow-hidden transition-all duration-300">
                 <div
                   className={`absolute inset-0 translate-x-[-100%] translate-y-[-100%] group-hover:translate-x-0 group-hover:translate-y-0 transition-transform duration-300 ease-in-out ${category.hoverColor} opacity-10`}
                 />
                 <div className="relative h-full w-full flex flex-col items-center justify-center gap-3">
                   <div
-                    className={`w-14 h-14 flex items-center justify-center rounded-full ${category.color} transition-colors duration-300 transform group-hover:scale-110`}
+                    className={`w-14 h-14 flex items-center justify-center rounded-full ${category.color} transition-colors duration-300`}
                   >
                     <category.icon
                       className={`h-7 w-7 transition-colors duration-300 ${category.hoverColor.replace(

@@ -6,12 +6,14 @@ import { FeaturesSection } from "./_components/features";
 import { PartnersSection } from "./_components/partners";
 import { CategoriesSection } from "./_components/categories";
 import { ReviewsSection } from "./_components/reviews";
+import { NewArrivalsSection } from "./_components/new-arrivals";
 
 export default function HomePage() {
   return (
     <>
       <HeroSection />
       <CategoriesSection />
+      <NewArrivalsSection />
       <FeaturesSection />
       <ProductsSection />
       <PartnersSection />
@@ -21,5 +23,6 @@ export default function HomePage() {
     </>
   );
 }
+
 
 
