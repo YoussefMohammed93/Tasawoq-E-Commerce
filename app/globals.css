@@ -147,3 +147,15 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+[dir="rtl"] .keen-slider {
+  direction: ltr;
+}
+
+[dir="rtl"] .keen-slider__slide {
+  direction: rtl;
+}
+
+.keen-slider {
+  padding: 20px 0px !important;
+}
