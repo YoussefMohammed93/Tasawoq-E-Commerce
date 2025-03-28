@@ -11,6 +11,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useKeenSlider } from "keen-slider/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, ChevronLeft, ChevronRight, Heart } from "lucide-react";
+import { SectionHeading } from "@/components/ui/section-heading";
 
 const AUTOPLAY_INTERVAL = 3000;
 
@@ -211,10 +212,10 @@ export const ProductsSection = () => {
     <section className="pb-16 pt-0 bg-background">
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-5">
-          <h2 className="text-3xl font-bold mb-4">منتجات مميزة</h2>
-          <p className="text-muted-foreground">
-            اكتشف مجموعة متنوعة من المنتجات العصرية والأنيقة
-          </p>
+          <SectionHeading
+            title="منتجات مميزة"
+            description="اكتشف مجموعة متنوعة من المنتجات العصرية والأنيقة"
+          />
         </div>
 
         <div
