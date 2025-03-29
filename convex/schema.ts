@@ -15,4 +15,17 @@ export default defineSchema({
     href: v.string(),
     order: v.number(),
   }).index("by_order", ["order"]),
+
+  hero: defineTable({
+    title: v.string(),
+    description: v.string(),
+    mainImage: v.optional(v.id("_storage")),
+    primaryButtonText: v.string(),
+    primaryButtonHref: v.string(),
+    secondaryButtonText: v.string(),
+    secondaryButtonHref: v.string(),
+    customerCount: v.number(),
+    customerText: v.string(),
+    customerImages: v.array(v.id("_storage")),
+  }),
 });

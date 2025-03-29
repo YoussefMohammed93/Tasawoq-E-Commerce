@@ -1,57 +1,87 @@
 /* eslint-disable @next/next/no-img-element */
+"use client";
+
 import Link from "next/link";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeftIcon, ShoppingBagIcon } from "lucide-react";
 
-export const HeroSection = () => {
+const HeroSectionSkeleton = () => {
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-background/70 to-background/95" />
-        <div className="absolute inset-0 opacity-30 mix-blend-soft-light">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_500px_at_50%_200px,var(--primary),transparent)]" />
+      <div className="max-w-7xl mx-auto px-5 relative py-20 pt-28">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 xl:gap-16">
+          <div className="flex flex-col justify-center space-y-4 max-w-xl w-full">
+            <div className="space-y-2">
+              <Skeleton className="h-16 w-3/4" />
+              <Skeleton className="h-6 w-full" />
+              <Skeleton className="h-6 w-4/5" />
+            </div>
+            <div className="flex flex-col gap-2 min-[450px]:flex-row">
+              <Skeleton className="h-12 w-full min-[450px]:w-36" />
+              <Skeleton className="h-12 w-full min-[450px]:w-36" />
+            </div>
+            <div className="flex items-center gap-4 mt-4">
+              <div className="flex -space-x-4 rtl:space-x-reverse">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-10 w-10 rounded-full" />
+                ))}
+              </div>
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+          </div>
+          <div className="w-full max-w-[550px] flex-shrink-0">
+            <Skeleton className="aspect-[2/2] w-full rounded-xl" />
+          </div>
         </div>
       </div>
-      <div
-        role="presentation"
-        className="absolute hidden md:block top-60 -left-64 w-96 h-96 bg-primary/20 dark:bg-primary/15 rounded-full blur-3xl animate-pulse"
-      />
-      <div
-        role="presentation"
-        className="absolute hidden md:block top-12 -right-64 w-96 h-96 bg-primary/15 dark:bg-primary/10 rounded-full blur-3xl animate-pulse"
-      />
-      <div
-        role="presentation"
-        className="absolute hidden lg:block bottom-20 left-1/4 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-pulse"
-      />
-      <div
-        role="presentation"
-        className="absolute hidden lg:block top-1/3 right-1/4 w-64 h-64 bg-secondary/20 rounded-full blur-3xl animate-pulse"
-      />
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+    </section>
+  );
+};
+
+export const HeroSection = () => {
+  const heroData = useQuery(api.hero.getHero);
+  const mainImageUrl = useQuery(
+    api.files.getImageUrl,
+    heroData?.mainImage ? { storageId: heroData.mainImage } : "skip"
+  );
+  const customerImageUrls = useQuery(
+    api.files.getMultipleImageUrls,
+    heroData?.customerImages ? { storageIds: heroData.customerImages } : "skip"
+  );
+
+  if (!heroData) {
+    return <HeroSectionSkeleton />;
+  }
+
+  return (
+    <section className="relative min-h-screen overflow-hidden bg-background">
       <div className="max-w-7xl mx-auto px-5 relative py-20 pt-28">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 xl:gap-16">
           <div className="flex flex-col justify-center space-y-4 max-w-xl">
             <div className="space-y-2">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                اكتشف أحدث صيحات
-                <span className="text-primary"> الموضة والأناقة</span>
+                {heroData.title}
               </h1>
               <p className="text-gray-500 md:text-xl dark:text-gray-400">
-                تسوق أحدث المنتجات من تشكيلتنا المميزة. جودة عالية وأسعار
-                تنافسية مع خدمة توصيل سريعة.
+                {heroData.description}
               </p>
             </div>
             <div className="flex flex-col gap-2 min-[450px]:flex-row">
               <Button asChild size="lg" className="gap-2">
-                <Link href="/dashboard">
-                  تسوق الآن
+                <Link href={heroData.primaryButtonHref}>
+                  {heroData.primaryButtonText}
                   <ShoppingBagIcon className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="gap-2">
-                <Link href="/dashboard/products">
-                  استعرض المنتجات
+                <Link href={heroData.secondaryButtonHref}>
+                  {heroData.secondaryButtonText}
                   <ArrowLeftIcon className="h-4 w-4" />
                 </Link>
               </Button>
@@ -59,21 +89,23 @@ export const HeroSection = () => {
 
             <div className="flex items-center gap-4 mt-4">
               <div className="flex -space-x-4 rtl:space-x-reverse">
-                {[1, 2, 3, 4].map((i) => (
+                {customerImageUrls?.map((url, i) => (
                   <div
                     key={i}
                     className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-background"
                   >
                     <img
-                      src={`https://picsum.photos/40/40?random=${i}`}
-                      alt={`Customer ${i}`}
+                      src={url ?? `https://picsum.photos/100/100?random=${i}`}
+                      alt={`Customer ${i + 1}`}
                       className="w-full h-full object-cover"
                     />
                   </div>
                 ))}
               </div>
               <div className="text-sm">
-                <p className="font-medium">+1000 عميل سعيد</p>
+                <p className="font-medium">
+                  +{heroData.customerCount} {heroData.customerText}
+                </p>
                 <div className="flex items-center gap-1 text-yellow-500">
                   {[1, 2, 3, 4, 5].map((i) => (
                     <svg
@@ -91,8 +123,8 @@ export const HeroSection = () => {
           <div className="w-full max-w-[550px] flex-shrink-0">
             <div className="relative aspect-[2/2] w-full overflow-hidden rounded-xl">
               <img
-                src="https://picsum.photos/800/1200?random=2"
-                alt="تشكيلة متنوعة من المنتجات العصرية"
+                src={mainImageUrl ?? "https://picsum.photos/800/1200?random=2"}
+                alt={heroData.title}
                 className="w-full h-full object-cover"
               />
             </div>
