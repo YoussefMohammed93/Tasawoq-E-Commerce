@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import Image from "next/image";
 import { toast } from "sonner";
 import { DndContext } from "@dnd-kit/core";
 import { useState, useEffect } from "react";
@@ -34,47 +34,88 @@ function LoadingSkeleton() {
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-5 w-full sm:w-96" />
           </div>
+          <Skeleton className="h-10 w-full sm:w-32" />
         </div>
       </div>
+
+      {/* Tabs Skeleton */}
       <div className="space-y-8">
-        <Card>
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[...Array(2)].map((_, colIndex) => (
-                <div key={colIndex} className="space-y-4">
-                  {[...Array(3)].map((_, rowIndex) => (
-                    <div key={rowIndex}>
+        <div className="flex flex-col gap-4">
+          <div className="inline-flex h-auto items-center justify-start rounded-lg bg-muted px-0.5 py-1 text-muted-foreground w-full md:w-fit">
+            <div className="w-full flex items-center justify-between gap-1 p-1">
+              <Skeleton className="h-8 w-24 rounded-md" />
+              <Skeleton className="h-8 w-24 rounded-md" />
+              <Skeleton className="h-8 w-24 rounded-md" />
+            </div>
+          </div>
+
+          <div className="space-y-8">
+            <Card>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
                       <Skeleton className="h-4 w-24 mb-2" />
                       <Skeleton className="h-10 w-full" />
                     </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-6">
-            <div className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                {[...Array(2)].map((_, index) => (
-                  <div key={index}>
-                    <Skeleton className="h-4 w-24 mb-2" />
-                    <Skeleton className="h-10 w-full" />
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <Skeleton className="h-32 w-full" />
+                    </div>
                   </div>
-                ))}
-              </div>
-              <div>
-                <Skeleton className="h-4 w-24 mb-4" />
-                <div className="space-y-4">
-                  {[...Array(2)].map((_, index) => (
-                    <Skeleton key={index} className="h-10 w-full" />
-                  ))}
+                  <div className="space-y-4">
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <Skeleton className="h-10 w-full sm:w-1/2" />
+                        <Skeleton className="h-10 w-full sm:w-1/2" />
+                      </div>
+                    </div>
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <Skeleton className="h-10 w-full sm:w-1/2" />
+                        <Skeleton className="h-10 w-full sm:w-1/2" />
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <Skeleton className="h-10 w-full" />
+                    </div>
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <Skeleton className="h-32 w-full" />
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <Skeleton className="h-10 w-full sm:w-1/2" />
+                        <Skeleton className="h-10 w-full sm:w-1/2" />
+                      </div>
+                    </div>
+                    <div>
+                      <Skeleton className="h-4 w-24 mb-2" />
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <Skeleton className="h-10 w-full sm:w-1/2" />
+                        <Skeleton className="h-10 w-full sm:w-1/2" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -95,8 +136,8 @@ interface FormData {
 }
 
 export default function Hero() {
+  const [isUploading] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     title: "",
     description: "",
@@ -361,10 +402,6 @@ export default function Hero() {
     }));
   };
 
-  const handleUploadStateChange = (uploading: boolean) => {
-    setIsUploading(uploading);
-  };
-
   useEffect(() => {
     console.log("Current state:", {
       formData,
@@ -522,10 +559,14 @@ export default function Hero() {
                         </div>
                       ) : (
                         <div className="relative group">
-                          <img
-                            src={mainImagePreview || mainImageUrl || undefined}
+                          <Image
+                            src={
+                              mainImagePreview || mainImageUrl || "/hero.png"
+                            }
                             alt="Main image preview"
-                            className="w-56 h-40 object-cover rounded-lg border"
+                            width={224}
+                            height={160}
+                            className="object-cover rounded-lg border"
                           />
                           <Button
                             variant="destructive"
@@ -697,10 +738,12 @@ export default function Hero() {
                                   <div
                                     className={`relative group ${index > 0 && formData.customerImages[index - 1] ? "mt-4" : ""}`}
                                   >
-                                    <img
+                                    <Image
                                       src={customerImageUrls[index]}
                                       alt={`Customer image ${index + 1}`}
-                                      className="w-24 h-24 object-cover rounded-lg border"
+                                      width={96}
+                                      height={96}
+                                      className="object-cover rounded-lg border"
                                     />
                                     <Button
                                       type="button"
@@ -720,10 +763,12 @@ export default function Hero() {
                                   <div
                                     className={`relative group ${index > 0 && formData.customerImages[index - 1] ? "mt-4" : ""}`}
                                   >
-                                    <img
+                                    <Image
                                       src={customerImagePreviews[index]}
                                       alt={`Customer image preview ${index + 1}`}
-                                      className="w-24 h-24 object-cover rounded-lg border"
+                                      width={96}
+                                      height={96}
+                                      className="object-cover rounded-lg border"
                                     />
                                     <Button
                                       type="button"

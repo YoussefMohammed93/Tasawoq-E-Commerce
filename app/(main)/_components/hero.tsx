@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ const HeroSectionSkeleton = () => {
             </div>
             <div className="flex items-center gap-4 mt-4">
               <div className="flex -space-x-4 rtl:space-x-reverse">
-                {[...Array(4)].map((_, i) => (
+                {[...Array(5)].map((_, i) => (
                   <Skeleton key={i} className="h-10 w-10 rounded-full" />
                 ))}
               </div>
@@ -52,59 +52,104 @@ export const HeroSection = () => {
   );
   const customerImageUrls = useQuery(
     api.files.getMultipleImageUrls,
-    heroData?.customerImages ? { storageIds: heroData.customerImages } : "skip"
+    heroData?.customerImages?.length
+      ? { storageIds: heroData.customerImages }
+      : "skip"
   );
 
-  if (!heroData) {
+  if (
+    heroData === undefined ||
+    mainImageUrl === undefined ||
+    (heroData?.customerImages?.length && customerImageUrls === undefined)
+  ) {
     return <HeroSectionSkeleton />;
   }
 
+  const data = heroData || {
+    title: "العنوان الرئيسي",
+    description: "وصف القسم الرئيسي",
+    mainImage: null,
+    primaryButtonText: "الزر الرئيسي",
+    primaryButtonHref: "/",
+    secondaryButtonText: "الزر الثانوي",
+    secondaryButtonHref: "/",
+    customerCount: 100,
+    customerText: "عميل سعيد",
+    customerImages: ["/avatar.png"],
+  };
+
   return (
     <section className="relative min-h-screen overflow-hidden bg-background">
+      <div className="absolute inset-0 -z-10">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-background/70 to-background/95" />
+        <div className="absolute inset-0 opacity-30 mix-blend-soft-light">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_500px_at_50%_200px,var(--primary),transparent)]" />
+        </div>
+      </div>
+      <div
+        role="presentation"
+        className="absolute hidden md:block top-60 -left-64 w-96 h-96 bg-primary/10 dark:bg-primary/15 rounded-full blur-3xl animate-pulse"
+      />
+      <div
+        role="presentation"
+        className="absolute hidden md:block top-12 -right-64 w-96 h-96 bg-primary/15 dark:bg-primary/10 rounded-full blur-3xl animate-pulse"
+      />
+      <div
+        role="presentation"
+        className="absolute hidden lg:block bottom-20 left-1/4 w-72 h-72 bg-accent/20 rounded-full blur-3xl animate-pulse"
+      />
+      <div
+        role="presentation"
+        className="absolute hidden lg:block top-1/3 right-1/4 w-64 h-64 bg-secondary/20 rounded-full blur-3xl animate-pulse"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#8882_1px,transparent_1px),linear-gradient(to_bottom,#8882_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       <div className="max-w-7xl mx-auto px-5 relative py-20 pt-28">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-8 xl:gap-16">
           <div className="flex flex-col justify-center space-y-4 max-w-xl">
             <div className="space-y-2">
               <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                {heroData.title}
+                {data.title}
               </h1>
-              <p className="text-gray-500 md:text-xl dark:text-gray-400">
-                {heroData.description}
-              </p>
+              <p className="text-muted-foreground py-3">{data.description}</p>
             </div>
             <div className="flex flex-col gap-2 min-[450px]:flex-row">
               <Button asChild size="lg" className="gap-2">
-                <Link href={heroData.primaryButtonHref}>
-                  {heroData.primaryButtonText}
+                <Link href={data.primaryButtonHref}>
+                  {data.primaryButtonText}
                   <ShoppingBagIcon className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="gap-2">
-                <Link href={heroData.secondaryButtonHref}>
-                  {heroData.secondaryButtonText}
+                <Link href={data.secondaryButtonHref}>
+                  {data.secondaryButtonText}
                   <ArrowLeftIcon className="h-4 w-4" />
                 </Link>
               </Button>
             </div>
-
             <div className="flex items-center gap-4 mt-4">
               <div className="flex -space-x-4 rtl:space-x-reverse">
-                {customerImageUrls?.map((url, i) => (
+                {(customerImageUrls || data.customerImages).map((url, i) => (
                   <div
                     key={i}
                     className="relative h-10 w-10 overflow-hidden rounded-full border-2 border-background"
                   >
-                    <img
-                      src={url ?? `https://picsum.photos/100/100?random=${i}`}
+                    <Image
+                      src={
+                        typeof url === "string" && url.startsWith("http")
+                          ? url
+                          : "/avatar.png"
+                      }
                       alt={`Customer ${i + 1}`}
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
+                      sizes="40px"
                     />
                   </div>
                 ))}
               </div>
               <div className="text-sm">
                 <p className="font-medium">
-                  +{heroData.customerCount} {heroData.customerText}
+                  +{data.customerCount} {data.customerText}
                 </p>
                 <div className="flex items-center gap-1 text-yellow-500">
                   {[1, 2, 3, 4, 5].map((i) => (
@@ -122,10 +167,18 @@ export const HeroSection = () => {
           </div>
           <div className="w-full max-w-[550px] flex-shrink-0">
             <div className="relative aspect-[2/2] w-full overflow-hidden rounded-xl">
-              <img
-                src={mainImageUrl ?? "https://picsum.photos/800/1200?random=2"}
-                alt={heroData.title}
-                className="w-full h-full object-cover"
+              <Image
+                src={
+                  typeof mainImageUrl === "string" &&
+                  mainImageUrl.startsWith("http")
+                    ? mainImageUrl
+                    : "/hero.png"
+                }
+                alt={data.title}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 550px"
+                priority
               />
             </div>
           </div>
