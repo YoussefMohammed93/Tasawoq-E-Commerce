@@ -1,6 +1,16 @@
 "use client";
 
 import {
+  PlusIcon,
+  Eye,
+  Save,
+  Loader2,
+  X,
+  TagIcon,
+  EyeIcon,
+  EyeOffIcon,
+} from "lucide-react";
+import {
   DndContext,
   closestCenter,
   KeyboardSensor,
@@ -35,7 +45,6 @@ import { useQuery, useMutation } from "convex/react";
 import { SortableCategory } from "./sortable-category";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { PlusIcon, Eye, Save, Loader2, X, TagIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface CategoryFormData {
@@ -81,6 +90,8 @@ export default function Categories() {
   const [activeTab, setActiveTab] = useState("page-settings");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isVisible, setIsVisible] = useState(pageData?.isVisible ?? true);
+  const [originalVisibility, setOriginalVisibility] = useState<boolean>(true);
 
   useEffect(() => {
     return () => {
@@ -101,6 +112,8 @@ export default function Categories() {
     if (pageData) {
       setPageTitle(pageData.title || "");
       setPageDescription(pageData.description || "");
+      setIsVisible(pageData.isVisible ?? true);
+      setOriginalVisibility(pageData.isVisible ?? true);
     }
   }, [pageData]);
 
@@ -121,6 +134,10 @@ export default function Categories() {
       const descriptionChanged =
         pageDescription.trim() !== (pageData?.description || "").trim();
       return titleChanged || descriptionChanged;
+    }
+
+    if (activeTab === "display-settings") {
+      return isVisible !== originalVisibility;
     }
 
     if (activeTab === "categories") {
@@ -165,6 +182,10 @@ export default function Categories() {
         await savePageMutation({
           title: pageTitle,
           description: pageDescription,
+        });
+      } else if (activeTab === "display-settings") {
+        await savePageMutation({
+          isVisible: isVisible,
         });
       } else if (activeTab === "categories") {
         await updateOrderMutation({
@@ -347,11 +368,13 @@ export default function Categories() {
           <TabsTrigger value="page-settings" className="flex-1">
             إعدادات القسم
           </TabsTrigger>
+          <TabsTrigger value="display-settings" className="flex-1">
+            إعدادات العرض
+          </TabsTrigger>
           <TabsTrigger value="categories" className="flex-1">
             الفئات
           </TabsTrigger>
         </TabsList>
-
         <TabsContent value="page-settings">
           <Card>
             <CardHeader>
@@ -376,6 +399,44 @@ export default function Categories() {
                   onChange={(e) => setPageDescription(e.target.value)}
                   placeholder="أدخل وصف القسم"
                 />
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="display-settings">
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold">إعدادات العرض</h3>
+              <p className="text-sm text-muted-foreground">
+                تحكم في ظهور وإخفاء القسم
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between">
+                <div className="space-y-0.5">
+                  <label className="text-sm font-medium">إظهار القسم</label>
+                  <p className="text-sm text-muted-foreground">
+                    عند التعطيل، لن يظهر هذا القسم في الموقع
+                  </p>
+                </div>
+                <Button
+                  variant={isVisible ? "default" : "outline"}
+                  onClick={() => setIsVisible(!isVisible)}
+                  className="w-full sm:w-auto gap-2"
+                  size="sm"
+                >
+                  {isVisible ? (
+                    <>
+                      <EyeIcon className="h-4 w-4" />
+                      ظاهر
+                    </>
+                  ) : (
+                    <>
+                      <EyeOffIcon className="h-4 w-4" />
+                      مخفي
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -454,6 +515,7 @@ export default function Categories() {
         <Button
           type="button"
           variant="outline"
+          className="gap-2"
           onClick={() => {
             const previewWindow = window.open("/", "_blank");
             if (previewWindow) {
@@ -463,7 +525,8 @@ export default function Categories() {
                   data: {
                     title: pageTitle,
                     description: pageDescription,
-                    categories: categories,
+                    categories: localCategories,
+                    isVisible: isVisible,
                   },
                 },
                 "*"
@@ -474,7 +537,11 @@ export default function Categories() {
           <Eye className="h-4 w-4" />
           معاينة
         </Button>
-        <Button onClick={handleSaveChanges} disabled={loading || !hasChanges()}>
+        <Button
+          onClick={handleSaveChanges}
+          disabled={loading || !hasChanges()}
+          className="gap-2"
+        >
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -488,7 +555,6 @@ export default function Categories() {
           )}
         </Button>
       </div>
-
       <Dialog
         open={isDialogOpen}
         onOpenChange={(open) => {

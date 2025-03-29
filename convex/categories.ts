@@ -18,15 +18,29 @@ export const getCategoriesPage = query({
 // Save the categories page data
 export const saveCategoriesPage = mutation({
   args: {
-    title: v.string(),
-    description: v.string(),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    isVisible: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db.query("categoriesPage").first();
     if (existing) {
-      return await ctx.db.patch(existing._id, args);
+      const updates: {
+        title?: string;
+        description?: string;
+        isVisible?: boolean;
+      } = {};
+      if (args.title !== undefined) updates.title = args.title;
+      if (args.description !== undefined)
+        updates.description = args.description;
+      if (args.isVisible !== undefined) updates.isVisible = args.isVisible;
+      return await ctx.db.patch(existing._id, updates);
     }
-    return await ctx.db.insert("categoriesPage", args);
+    return await ctx.db.insert("categoriesPage", {
+      title: args.title ?? "",
+      description: args.description ?? "",
+      isVisible: args.isVisible ?? true,
+    });
   },
 });
 

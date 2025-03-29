@@ -18,6 +18,7 @@ export default function Loading() {
           <div className="flex w-full gap-1 p-1">
             <Skeleton className="h-8 w-full sm:w-32 rounded-md" />
             <Skeleton className="h-8 w-full sm:w-32 rounded-md" />
+            <Skeleton className="h-8 w-full sm:w-32 rounded-md" />
           </div>
         </div>
         <TabsContent value="page-settings">

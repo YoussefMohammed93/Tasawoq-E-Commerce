@@ -44,6 +44,10 @@ export const CategoriesSection = () => {
     );
   }
 
+  if (!pageData?.isVisible) {
+    return null;
+  }
+
   if (categories.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center text-center pb-12">
@@ -79,9 +83,9 @@ export const CategoriesSection = () => {
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-12">
           <SectionHeading
-            title={pageData?.title ?? "تصفح حسب الفئات"}
+            title={pageData.title ?? "تصفح حسب الفئات"}
             description={
-              pageData?.description ?? "اكتشف منتجاتنا المميزة في مختلف الفئات"
+              pageData.description ?? "اكتشف منتجاتنا المميزة في مختلف الفئات"
             }
           />
         </div>

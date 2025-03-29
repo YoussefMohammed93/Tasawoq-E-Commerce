@@ -30,13 +30,26 @@ export default defineSchema({
   }),
 
   categoriesPage: defineTable({
-    title: v.string(),
-    description: v.string(),
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    isVisible: v.optional(v.boolean()),
   }),
 
   categories: defineTable({
     name: v.string(),
     href: v.string(),
+    order: v.number(),
+    image: v.id("_storage"),
+  }).index("by_order", ["order"]),
+
+  partnersPage: defineTable({
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    isVisible: v.optional(v.boolean()),
+  }),
+
+  partners: defineTable({
+    name: v.string(),
     order: v.number(),
     image: v.id("_storage"),
   }).index("by_order", ["order"]),
