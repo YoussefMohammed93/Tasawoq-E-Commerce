@@ -26,7 +26,7 @@ import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery, useMutation } from "convex/react";
-import { Loader2, Plus, Save, Link as LinkIcon } from "lucide-react";
+import { Loader2, Plus, Save, Link as LinkIcon, Eye } from "lucide-react";
 
 interface HeaderLink {
   id: string;
@@ -154,23 +154,42 @@ export default function Header() {
             title="الهيدر"
             description="هنا يمكنك تعديل الهيدر الخاص بالصفحة الرئيسية."
           />
-          <Button
-            onClick={handleSave}
-            disabled={loading || !hasChanges()}
-            className="w-full sm:w-auto"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                جاري الحفظ...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4" />
-                حفظ التغييرات
-              </>
-            )}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full sm:w-auto"
+              onClick={() => {
+                const previewWindow = window.open("/", "_blank");
+                if (previewWindow) {
+                  previewWindow.postMessage(
+                    { type: "PREVIEW_DATA", data: links },
+                    "*"
+                  );
+                }
+              }}
+            >
+              <Eye className="h-4 w-4 ml-2" />
+              معاينة
+            </Button>
+            <Button
+              onClick={handleSave}
+              disabled={loading || !hasChanges()}
+              className="w-full sm:w-auto"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  جاري الحفظ...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  حفظ التغييرات
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </div>
       <Card className="p-6 pb-1 pt-2 border-2 border-dashed">
@@ -244,7 +263,10 @@ function LoadingSkeleton() {
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-5 w-full sm:w-96" />
           </div>
-          <Skeleton className="h-10 w-full sm:w-32" />
+          <div className="flex gap-4 w-full sm:w-auto">
+            <Skeleton className="h-10 w-full sm:w-32" />
+            <Skeleton className="h-10 w-full sm:w-32" />
+          </div>
         </div>
       </div>
       <Card className="p-6 border-2 border-dashed">

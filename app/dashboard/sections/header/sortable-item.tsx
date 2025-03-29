@@ -49,7 +49,7 @@ export function SortableItem({
         isDragging ? "shadow-sm" : ""
       }`}
     >
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         <div {...attributes} {...listeners}>
           <Button variant="outline" className="cursor-move">
             <GripVertical className="h-4 w-4" />
@@ -79,7 +79,7 @@ export function SortableItem({
           placeholder="مسار الرابط"
           value={link.href}
           onChange={(e) => onChange(index, "href", e.target.value)}
-          className="flex-1"
+          className="flex-1 placeholder:text-right"
           dir="ltr"
         />
       </div>

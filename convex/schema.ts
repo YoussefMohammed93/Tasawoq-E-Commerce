@@ -28,4 +28,16 @@ export default defineSchema({
     customerText: v.string(),
     customerImages: v.array(v.id("_storage")),
   }),
+
+  categoriesPage: defineTable({
+    title: v.string(),
+    description: v.string(),
+  }),
+
+  categories: defineTable({
+    name: v.string(),
+    href: v.string(),
+    order: v.number(),
+    image: v.id("_storage"),
+  }).index("by_order", ["order"]),
 });

@@ -14,7 +14,16 @@ import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, Heart, Search, Menu } from "lucide-react";
+
+const HeaderLinkSkeleton = ({ isMobile = false }: { isMobile?: boolean }) => {
+  return isMobile ? (
+    <Skeleton className="h-9 w-full rounded-md" />
+  ) : (
+    <Skeleton className="h-6 w-20" />
+  );
+};
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,22 +48,31 @@ export function Header() {
             </Link>
           </div>
           <div className="hidden md:flex items-center gap-6">
-            {headerLinks?.map((item) => (
-              <Link
-                key={item._id}
-                href={item.href}
-                className={cn(
-                  "relative py-1.5 text-sm font-medium transition-colors",
-                  "hover:text-primary",
-                  "after:absolute after:left-0 after:right-0 after:-bottom-[1.5px] after:h-0.5 after:rounded-full after:bg-primary after:transition-transform",
-                  isActive(item.href)
-                    ? "text-primary after:scale-x-100"
-                    : "text-foreground/70 after:scale-x-0 hover:after:scale-x-100"
-                )}
-              >
-                {item.name}
-              </Link>
-            ))}
+            {!headerLinks ? (
+              <>
+                <HeaderLinkSkeleton />
+                <HeaderLinkSkeleton />
+                <HeaderLinkSkeleton />
+                <HeaderLinkSkeleton />
+              </>
+            ) : (
+              headerLinks.map((item) => (
+                <Link
+                  key={item._id}
+                  href={item.href}
+                  className={cn(
+                    "relative py-1.5 text-sm font-medium transition-colors",
+                    "hover:text-primary",
+                    "after:absolute after:left-0 after:right-0 after:-bottom-[1.5px] after:h-0.5 after:rounded-full after:bg-primary after:transition-transform",
+                    isActive(item.href)
+                      ? "text-primary after:scale-x-100"
+                      : "text-foreground/70 after:scale-x-0 hover:after:scale-x-100"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              ))
+            )}
           </div>
           <div className="flex items-center gap-4">
             <Button
@@ -121,21 +139,30 @@ export function Header() {
             <div className="flex flex-col">
               <div className="flex-1 p-4">
                 <div className="space-y-1">
-                  {headerLinks?.map((item) => (
-                    <Link
-                      key={item._id}
-                      href={item.href}
-                      className={cn(
-                        "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
-                        isActive(item.href)
-                          ? "bg-primary/10 text-primary font-medium"
-                          : "text-foreground/70 hover:bg-primary/5 hover:text-foreground"
-                      )}
-                      onClick={() => setIsOpen(false)}
-                    >
-                      {item.name}
-                    </Link>
-                  ))}
+                  {!headerLinks ? (
+                    <div className="space-y-2">
+                      <HeaderLinkSkeleton isMobile />
+                      <HeaderLinkSkeleton isMobile />
+                      <HeaderLinkSkeleton isMobile />
+                      <HeaderLinkSkeleton isMobile />
+                    </div>
+                  ) : (
+                    headerLinks.map((item) => (
+                      <Link
+                        key={item._id}
+                        href={item.href}
+                        className={cn(
+                          "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                          isActive(item.href)
+                            ? "bg-primary/10 text-primary font-medium"
+                            : "text-foreground/70 hover:bg-primary/5 hover:text-foreground"
+                        )}
+                        onClick={() => setIsOpen(false)}
+                      >
+                        {item.name}
+                      </Link>
+                    ))
+                  )}
                 </div>
               </div>
               <div className="border-t p-4">

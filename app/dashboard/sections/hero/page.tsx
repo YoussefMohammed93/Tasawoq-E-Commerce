@@ -1,7 +1,15 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
+import {
+  Plus,
+  X,
+  Eye,
+  UsersIcon,
+  Image as ImageIcon,
+  Loader2,
+  Save,
+} from "lucide-react";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -22,7 +30,6 @@ import { useQuery, useMutation } from "convex/react";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
 import { ImageUpload } from "@/components/ui/image-upload";
-import { Plus, X, Eye, UsersIcon, Image as ImageIcon } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function LoadingSkeleton() {
@@ -37,8 +44,6 @@ function LoadingSkeleton() {
           <Skeleton className="h-10 w-full sm:w-32" />
         </div>
       </div>
-
-      {/* Tabs Skeleton */}
       <div className="space-y-8">
         <div className="flex flex-col gap-4">
           <div className="inline-flex h-auto items-center justify-start rounded-lg bg-muted px-0.5 py-1 text-muted-foreground w-full md:w-fit">
@@ -48,7 +53,6 @@ function LoadingSkeleton() {
               <Skeleton className="h-8 w-24 rounded-md" />
             </div>
           </div>
-
           <div className="space-y-8">
             <Card>
               <CardContent className="p-6">
@@ -272,8 +276,6 @@ export default function Hero() {
   };
 
   const handleCustomerImageSelect = (index: number, file: File) => {
-    console.log("Image selected:", { index, file });
-
     const previewUrl = URL.createObjectURL(file);
 
     setCustomerImagePreviews((prev) => {
@@ -281,14 +283,12 @@ export default function Hero() {
         ...prev,
         [index]: previewUrl,
       };
-      console.log("Updated previews:", newPreviews);
       return newPreviews;
     });
 
     setFormData((prev) => {
       const newImages = [...prev.customerImages];
       newImages[index] = file;
-      console.log("Updated formData customerImages:", newImages);
       return {
         ...prev,
         customerImages: newImages,
@@ -402,28 +402,7 @@ export default function Hero() {
     }));
   };
 
-  useEffect(() => {
-    console.log("Current state:", {
-      formData,
-      customerImagePreviews,
-      mainImageFile,
-      mainImagePreview,
-    });
-  }, [formData, customerImagePreviews, mainImageFile, mainImagePreview]);
-
-  useEffect(() => {
-    const isDisabled = loading || isUploading || !hasChanges();
-    console.log("Save button disabled state:", {
-      loading,
-      isUploading,
-      hasChanges: hasChanges(),
-      isDisabled,
-    });
-  }, [loading, isUploading, formData, customerImagePreviews]);
-
   const hasChanges = () => {
-    console.log("hasChanges called");
-
     if (imagesToDelete.length > 0 || formData.mainImageToDelete) {
       return true;
     }
@@ -469,14 +448,6 @@ export default function Hero() {
 
     return hasFieldChanges;
   };
-
-  useEffect(() => {
-    console.log("State updated:", {
-      customerImagesCount: formData.customerImages.length,
-      imagesToDeleteCount: imagesToDelete.length,
-      hasChanges: hasChanges(),
-    });
-  }, [formData.customerImages, imagesToDelete]);
 
   if (heroData === undefined) {
     return <LoadingSkeleton />;
@@ -814,9 +785,18 @@ export default function Hero() {
           <Button
             type="submit"
             disabled={loading || isUploading || !hasChanges()}
-            onClick={() => console.log("Save button clicked")}
           >
-            {loading ? "جاري الحفظ..." : "حفظ التغييرات"}
+            {loading ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                جاري الحفظ...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                حفظ التغييرات
+              </>
+            )}
           </Button>
         </div>
       </form>
