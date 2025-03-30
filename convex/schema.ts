@@ -66,4 +66,22 @@ export default defineSchema({
     order: v.number(),
     image: v.id("_storage"),
   }).index("by_order", ["order"]),
+
+  newsletter: defineTable({
+    title: v.string(),
+    description: v.string(),
+    isVisible: v.boolean(),
+    featureOneTitle: v.optional(v.string()),
+    featureOneImage: v.optional(v.string()),
+    featureTwoTitle: v.optional(v.string()),
+    featureTwoImage: v.optional(v.string()),
+    buttonText: v.optional(v.string()),
+    subscribers: v.array(
+      v.object({
+        email: v.string(),
+        subscribedAt: v.string(),
+        isRead: v.boolean(),
+      })
+    ),
+  }),
 });

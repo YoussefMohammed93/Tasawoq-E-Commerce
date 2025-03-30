@@ -1,15 +1,15 @@
 "use client";
 
 import {
+  StarIcon,
   HomeIcon,
+  LayoutIcon,
   PackageIcon,
   SettingsIcon,
-  ShoppingCartIcon,
-  UsersIcon as CustomersIcon,
-  StarIcon,
   ChevronDownIcon,
+  ShoppingCartIcon,
   LayoutDashboardIcon,
-  LayoutIcon,
+  UsersIcon as CustomersIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -24,11 +24,14 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { useState } from "react";
+import { useQuery } from "convex/react";
 import { usePathname } from "next/navigation";
+import { api } from "@/convex/_generated/api";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const subscribers = useQuery(api.newsletter.getUnreadSubscribers);
 
   const mainSections = [
     {
@@ -70,6 +73,7 @@ export function DashboardSidebar() {
     {
       label: "نشرتنا البريدية",
       href: "/dashboard/sections/newsletter",
+      badge: subscribers?.length || 0,
     },
     {
       label: "مميزات المتجر",
@@ -163,10 +167,16 @@ export function DashboardSidebar() {
                           >
                             <Link
                               href={section.href}
-                              className="flex w-full items-center gap-2"
+                              className="flex w-full items-center gap-2 relative"
                             >
                               <LayoutDashboardIcon className="h-4 w-4 ml-1" />
                               <span>{section.label}</span>
+                              {typeof section.badge === "number" &&
+                                section.badge > 0 && (
+                                  <span className="absolute left-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                                    {section.badge}
+                                  </span>
+                                )}
                             </Link>
                           </SidebarMenuSubButton>
                         </SidebarMenuSubItem>
