@@ -84,4 +84,27 @@ export default defineSchema({
       })
     ),
   }),
+
+  products: defineTable({
+    name: v.string(),
+    description: v.string(),
+    mainImage: v.id("_storage"),
+    gallery: v.array(v.id("_storage")),
+    price: v.number(),
+    discountPercentage: v.number(),
+    quantity: v.number(),
+    sizes: v.array(v.string()),
+    colors: v.array(
+      v.object({
+        name: v.string(),
+        value: v.string(),
+      })
+    ),
+    categoryId: v.id("categories"),
+    badges: v.array(v.string()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_category", ["categoryId"])
+    .index("by_created", ["createdAt"]),
 });

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
@@ -18,7 +19,9 @@ import {
   PaginationNext,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import { useQuery } from "convex/react";
 import { Card } from "@/components/ui/card";
+import { api } from "@/convex/_generated/api";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Footer } from "@/components/ui/footer";
@@ -26,59 +29,111 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Header } from "@/components/ui/header";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, ShoppingCart, Search, FilterIcon } from "lucide-react";
 
-interface Product {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  discountPercentage: number;
-  image: string;
-  colors: string[];
-  sizes: string[];
-  status: "new" | "offer" | "prev-offer";
-  category: string;
-}
-
-const categories = ["الكل", "هوديز", "تيشيرتات", "بناطيل", "أحذية"];
-
-const colors = [
-  { name: "أسود", value: "#1a1a1a" },
-  { name: "رمادي", value: "#6b7280" },
-  { name: "أبيض", value: "#dedede" },
-  { name: "أزرق", value: "#3b82f6" },
-  { name: "أخضر", value: "#22c55e" },
-  { name: "أحمر", value: "#ef4444" },
-];
-
-const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
-
-const ITEMS_PER_PAGE = 9;
-
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
+const ProductsSkeleton = () => {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <Header />
+      <main className="flex-1 py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 mt-20 sm:mt-16 lg:mt-0">
+          <div className="lg:hidden mb-4">
+            <Skeleton className="h-10 w-full" />
+          </div>
+          <div className="flex flex-col lg:flex-row gap-8">
+            <div className="hidden lg:block w-64 flex-shrink-0 mt-16">
+              <div className="sticky h-fit top-24 space-y-5">
+                <div className="space-y-4">
+                  <Skeleton className="h-6 w-32" />
+                  <div className="space-y-2">
+                    {[...Array(6)].map((_, i) => (
+                      <Skeleton key={i} className="h-9 w-full" />
+                    ))}
+                  </div>
+                </div>
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="space-y-4">
+                    <Skeleton className="h-6 w-24" />
+                    <div className="space-y-2">
+                      {[...Array(4)].map((_, j) => (
+                        <Skeleton key={j} className="h-9 w-full" />
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex-1 mt-4 lg:mt-16">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
+                <div className="lg:col-span-6">
+                  <Skeleton className="h-10 w-full" />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 lg:col-span-6">
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton
+                      key={i}
+                      className={cn("h-10 w-full", i === 5 ? "sm:hidden" : "")}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i} className="group">
+                    <Card className="h-[400px] sm:h-[450px] flex flex-col p-0">
+                      <div className="relative aspect-square">
+                        <Skeleton className="absolute inset-0 w-full h-full rounded-t-lg" />
+                        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex flex-col gap-1 sm:gap-2">
+                          <Skeleton className="h-6 w-16" />
+                        </div>
+                        <Skeleton className="absolute top-2 sm:top-3 left-2 sm:left-3 h-9 w-9" />
+                      </div>
+                      <div className="p-3 sm:p-4 space-y-3">
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-full" />
+                        <div className="flex items-center justify-between">
+                          <Skeleton className="h-6 w-24" />
+                        </div>
+                      </div>
+                    </Card>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-6 sm:mt-8 flex flex-col items-center gap-3 sm:gap-4">
+                <Skeleton className="h-5 w-48" />
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-10 w-10" />
+                  {[...Array(3)].map((_, i) => (
+                    <Skeleton key={i} className="h-10 w-10" />
+                  ))}
+                  <Skeleton className="h-10 w-10" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
 };
 
-const statusOptions = [
-  { id: "all", label: "الكل" },
-  { id: "new", label: "جديد" },
-  { id: "offer", label: "عرض خاص" },
-  { id: "خصم", label: "خصم" },
-];
-
-const products: Product[] = Array.from({ length: 50 }, (_, i) => ({
-  id: i + 1,
-  title: `${["هودي", "تيشيرت", "بنطلون", "حذاء", "ساعة"][i % 5]} ${i + 1}`,
-  description: "منتج مميز بجودة عالية",
-  price: Math.floor(Math.random() * (1000 - 50) + 50),
-  discountPercentage: i % 3 === 0 ? Math.floor(Math.random() * 30) + 10 : 0,
-  image: "/hoodie.png",
-  colors: colors.slice(0, Math.floor(Math.random() * 4) + 1).map((c) => c.name),
-  sizes: sizes.slice(0, Math.floor(Math.random() * 4) + 2),
-  status: i % 4 === 0 ? "new" : i % 3 === 0 ? "offer" : "prev-offer",
-  category: categories[Math.floor(Math.random() * (categories.length - 1)) + 1],
-}));
+const EmptyState = () => {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-12 pt-28">
+      <div className="bg-muted p-5 rounded-full mb-4">
+        <ShoppingCart className="h-9 w-9 text-muted-foreground" />
+      </div>
+      <h3 className="text-lg sm:text-xl font-medium mb-2">
+        لا توجد منتجات متاحة حاليًا
+      </h3>
+      <p className="text-sm sm:text-lg text-muted-foreground max-w-[500px]">
+        لم يتم إضافة أي منتجات بعد, يرجى العودة لاحقًا
+      </p>
+    </div>
+  );
+};
 
 export default function ProductsPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,24 +145,72 @@ export default function ProductsPage() {
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
+  const products = useQuery(api.products.getProducts);
+  const categoriesData = useQuery(api.categories.getCategories);
+
+  if (!products || !categoriesData) {
+    return <ProductsSkeleton />;
+  }
+
+  if (products.length === 0) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 py-4 sm:py-8">
+          <div className="max-w-7xl mx-auto px-4 mt-20 sm:mt-16 lg:mt-0">
+            <EmptyState />
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  const categories = [{ _id: "all", name: "الكل" }, ...categoriesData];
+
+  const colors = [
+    { name: "أسود", value: "#1a1a1a" },
+    { name: "رمادي", value: "#6b7280" },
+    { name: "أبيض", value: "#dedede" },
+    { name: "أزرق", value: "#3b82f6" },
+    { name: "أخضر", value: "#22c55e" },
+    { name: "أحمر", value: "#ef4444" },
+  ];
+
+  const sizes = ["XS", "S", "M", "L", "XL", "XXL"];
+
+  const ITEMS_PER_PAGE = 9;
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const statusOptions = [
+    { id: "all", label: "الكل" },
+    { id: "جديد", label: "جديد" },
+    { id: "الأكثر مبيعاً", label: "الأكثر مبيعاً" },
+    { id: "خصم", label: "خصم" },
+    { id: "عرض خاص", label: "عرض خاص" },
+  ];
+
   const FiltersContent = () => (
     <div className="space-y-6">
       <div>
         <h3 className="font-semibold mb-3">الفئات</h3>
         <div className="space-y-2">
           {categories.map((category) => (
-            <div key={category} className="flex items-center">
+            <div key={category._id} className="flex items-center">
               <Checkbox
-                id={`mobile-${category}`}
+                id={`category-${category._id}`}
                 className="ml-2"
-                checked={selectedCategory === category}
+                checked={selectedCategory === category.name}
                 onCheckedChange={() => {
-                  setSelectedCategory(category);
+                  setSelectedCategory(category.name);
                   setCurrentPage(1);
                 }}
               />
-              <label htmlFor={`mobile-${category}`} className="text-sm">
-                {category}
+              <label htmlFor={`category-${category._id}`} className="text-sm">
+                {category.name}
               </label>
             </div>
           ))}
@@ -215,21 +318,25 @@ export default function ProductsPage() {
         ? true
         : selectedStatus === "خصم"
           ? product.discountPercentage > 0
-          : product.status === selectedStatus;
+          : product.badges.includes(selectedStatus);
 
-    const matchesSearch = product.title
+    const matchesSearch = product.name
       .toLowerCase()
       .includes(searchQuery.toLowerCase());
 
     const matchesCategory =
-      selectedCategory === "الكل" || product.category === selectedCategory;
+      selectedCategory === "الكل" ||
+      categoriesData.find((cat) => cat.name === selectedCategory)?._id ===
+        product.categoryId;
 
     const matchesPrice =
       product.price >= priceRange[0] && product.price <= priceRange[1];
 
     const matchesColors =
       selectedColors.length === 0 ||
-      selectedColors.some((color) => product.colors.includes(color));
+      selectedColors.some((colorName) =>
+        product.colors.some((color) => color.name === colorName)
+      );
 
     const matchesSizes =
       selectedSizes.length === 0 ||
@@ -382,7 +489,7 @@ export default function ProductsPage() {
             <div className="flex-1 mt-4 lg:mt-16">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 mb-6">
                 <div className="relative lg:col-span-6">
-                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Search className="absolute right-3 top-4.5 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="البحث عن منتج..."
                     className="pr-9 w-full"
@@ -393,14 +500,14 @@ export default function ProductsPage() {
                     }}
                   />
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 lg:col-span-6">
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 lg:col-span-6">
                   {statusOptions.map((status) => (
                     <Button
                       key={status.id}
                       variant={
                         selectedStatus === status.id ? "default" : "outline"
                       }
-                      className="w-full text-sm sm:text-base"
+                      className="w-full text-sm"
                       onClick={() => {
                         setSelectedStatus(status.id);
                         setCurrentPage(1);
@@ -411,78 +518,97 @@ export default function ProductsPage() {
                   ))}
                 </div>
               </div>
-              {filteredProducts.length > 0 ? (
+              {paginatedProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {paginatedProducts.map((product) => (
-                    <Card
-                      key={product.id}
-                      className="group py-0 cursor-pointer"
+                    <Link
+                      key={product._id}
+                      href={`/products/${product._id}`}
+                      className="block"
                     >
-                      <div className="relative aspect-square">
-                        <Image
-                          src={product.image}
-                          alt={product.title}
-                          fill
-                          className="object-contain rounded-t-lg p-10 pb-0 sm:p-8 sm:pb-0 lg:p-6 lg:pb-0"
-                        />
-                        <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex flex-col gap-1 sm:gap-2">
-                          <div key="discount">
-                            {product.discountPercentage > 0 && (
-                              <Badge variant="destructive">
-                                خصم {product.discountPercentage}%
-                              </Badge>
-                            )}
+                      <Card className="group py-0 cursor-pointer">
+                        <div className="relative aspect-square">
+                          {product.mainImageUrl && (
+                            <Image
+                              src={product.mainImageUrl}
+                              alt={product.name}
+                              fill
+                              className="object-contain rounded-t-lg p-10 pb-0 sm:p-8 sm:pb-0 lg:p-6 lg:pb-0"
+                            />
+                          )}
+                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex flex-col gap-1 sm:gap-2">
+                            <div key="discount">
+                              {product.discountPercentage > 0 && (
+                                <Badge variant="destructive">
+                                  خصم {product.discountPercentage}%
+                                </Badge>
+                              )}
+                            </div>
+                            <div key="status">
+                              {product.badges.includes("جديد") && (
+                                <Badge
+                                  variant="default"
+                                  className="bg-green-500"
+                                >
+                                  جديد
+                                </Badge>
+                              )}
+                              {product.badges.includes("عرض خاص") && (
+                                <Badge
+                                  variant="default"
+                                  className="bg-blue-500"
+                                >
+                                  عرض خاص
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                          <div key="status">
-                            {product.status === "new" && (
-                              <Badge variant="default" className="bg-green-500">
-                                جديد
-                              </Badge>
-                            )}
-                            {product.status === "offer" && (
-                              <Badge variant="default" className="bg-blue-500">
-                                عرض خاص
-                              </Badge>
-                            )}
-                          </div>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            className="absolute top-2 sm:top-3 left-2 sm:left-3 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.preventDefault();
+                            }}
+                          >
+                            <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </Button>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="absolute top-2 sm:top-3 left-2 sm:left-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                        >
-                          <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-                        </Button>
-                      </div>
-                      <div className="p-3 sm:p-4 sm:pt-0">
-                        <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
-                          {product.title}
-                        </h3>
-                        <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
-                          {product.description}
-                        </p>
-                        <div className="flex items-center justify-between mb-3 sm:mb-4">
-                          <div className="flex items-center gap-1 sm:gap-2">
-                            <span className="font-bold text-primary text-sm sm:text-base">
-                              {product.price} ر.س
-                            </span>
-                            {product.discountPercentage > 0 && (
-                              <span className="text-xs sm:text-sm text-muted-foreground line-through">
+                        <div className="p-3 sm:p-4 sm:pt-0">
+                          <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
+                            {product.description}
+                          </p>
+                          <div className="flex items-center justify-between mb-3 sm:mb-4">
+                            <div className="flex items-center gap-1 sm:gap-2">
+                              {product.discountPercentage > 0 && (
+                                <span className="text-xs text-muted-foreground line-through">
+                                  {product.price} ر.س
+                                </span>
+                              )}
+                              <span className="font-bold text-primary text-sm sm:text-base">
                                 {(
                                   product.price *
-                                  (1 + product.discountPercentage / 100)
+                                  (1 - product.discountPercentage / 100)
                                 ).toFixed(2)}{" "}
                                 ر.س
                               </span>
-                            )}
+                            </div>
                           </div>
+                          <Button
+                            className="w-full gap-2 text-sm sm:text-base"
+                            onClick={(e) => {
+                              e.preventDefault();
+                            }}
+                          >
+                            <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
+                            إضافة للسلة
+                          </Button>
                         </div>
-                        <Button className="w-full gap-2 text-sm sm:text-base">
-                          <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-                          إضافة للسلة
-                        </Button>
-                      </div>
-                    </Card>
+                      </Card>
+                    </Link>
                   ))}
                 </div>
               ) : (

@@ -196,15 +196,11 @@ export const ProductsSection = () => {
             description="اكتشف مجموعة متنوعة من المنتجات العصرية والأنيقة"
           />
         </div>
-
         <div className="relative">
           <div ref={sliderRef} className="keen-slider">
             {products.map((product) => {
-              const originalPrice =
-                product.discountPercentage > 0
-                  ? product.price / (1 - product.discountPercentage / 100)
-                  : product.price;
-
+              const discountedPrice =
+                product.price * (1 - product.discountPercentage / 100);
               return (
                 <div className="keen-slider__slide" key={product.id}>
                   <Link
@@ -247,11 +243,11 @@ export const ProductsSection = () => {
                           </Badge>
                           <div className="flex items-center gap-2">
                             <span className="font-bold text-primary text-base">
-                              {product.price.toFixed(2)} ر.س
+                              {discountedPrice.toFixed(2)} ر.س
                             </span>
                             {product.discountPercentage > 0 && (
                               <span className="text-muted-foreground line-through text-xs">
-                                {originalPrice.toFixed(2)} ر.س
+                                {product.price.toFixed(2)} ر.س
                               </span>
                             )}
                           </div>
@@ -280,7 +276,6 @@ export const ProductsSection = () => {
               );
             })}
           </div>
-
           {loaded && instanceRef.current && (
             <>
               <Button
@@ -288,7 +283,7 @@ export const ProductsSection = () => {
                 className="absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-4 xl:-left-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
-                  instanceRef.current?.next(); // Changed from prev() to next()
+                  instanceRef.current?.next();
                 }}
                 disabled={!instanceRef.current || isAtStart}
               >
@@ -300,13 +295,12 @@ export const ProductsSection = () => {
                 className="absolute top-1/2 -translate-y-1/2 -right-2 sm:-right-4 xl:-right-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
-                  instanceRef.current?.prev(); // Changed from next() to prev()
+                  instanceRef.current?.prev();
                 }}
                 disabled={!instanceRef.current || isAtEnd}
               >
                 <ChevronRight className="size-5" />
               </Button>
-
               <div className="flex flex-row justify-center gap-2 mt-6">
                 {[
                   ...Array(instanceRef.current.track.details.slides.length),
