@@ -53,4 +53,17 @@ export default defineSchema({
     order: v.number(),
     image: v.id("_storage"),
   }).index("by_order", ["order"]),
+
+  featuresPage: defineTable({
+    title: v.optional(v.string()),
+    description: v.optional(v.string()),
+    isVisible: v.optional(v.boolean()),
+  }),
+
+  features: defineTable({
+    name: v.string(),
+    description: v.string(),
+    order: v.number(),
+    image: v.id("_storage"),
+  }).index("by_order", ["order"]),
 });

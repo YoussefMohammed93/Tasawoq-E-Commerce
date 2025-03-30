@@ -11,14 +11,13 @@ import {
   Save,
 } from "lucide-react";
 import {
+  arrayMove,
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import Image from "next/image";
 import { toast } from "sonner";
-import { DndContext } from "@dnd-kit/core";
 import { useState, useEffect } from "react";
-import { DragEndEvent } from "@dnd-kit/core";
 import { Input } from "@/components/ui/input";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -29,7 +28,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation } from "convex/react";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent } from "@/components/ui/card";
+import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { ImageUpload } from "@/components/ui/image-upload";
+import { SortableCustomerImage } from "./sortable-customer-image";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function LoadingSkeleton() {
@@ -161,6 +162,8 @@ export default function Hero() {
     Record<number, string>
   >({});
   const [imagesToDelete, setImagesToDelete] = useState<string[]>([]);
+  const [hasOrderChanged, setHasOrderChanged] = useState(false);
+  const [isSavingOrder, setIsSavingOrder] = useState(false);
 
   const heroData = useQuery(api.hero.getHero);
 
@@ -299,12 +302,10 @@ export default function Hero() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      toast.error("يرجى تصحيح الأخطاء قبل الحفظ");
-      return;
-    }
+    if (!hasChanges()) return;
 
     setLoading(true);
+    setIsSavingOrder(true);
 
     try {
       for (const imageId of imagesToDelete) {
@@ -381,25 +382,31 @@ export default function Hero() {
       });
     } finally {
       setLoading(false);
+      setIsSavingOrder(false);
     }
   };
 
-  const onDragEnd = (result: DragEndEvent) => {
-    if (!result.over) return;
+  const onDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    const items = Array.from(formData.customerImages);
-    const oldIndex = items.findIndex((id) => id === result.active.id);
-    const [reorderedItem] = items.splice(oldIndex, 1);
-    items.splice(
-      result.over.data?.current?.sortable?.index ?? 0,
-      0,
-      reorderedItem
-    );
+    if (!over || active.id === over.id) return;
 
-    setFormData((prev) => ({
-      ...prev,
-      customerImages: items,
-    }));
+    const oldIndex = parseInt(active.id as string);
+    const newIndex = parseInt(over.id as string);
+
+    setFormData((prev) => {
+      const newCustomerImages = arrayMove(
+        prev.customerImages,
+        oldIndex,
+        newIndex
+      );
+      return {
+        ...prev,
+        customerImages: newCustomerImages,
+      };
+    });
+
+    setHasOrderChanged(true);
   };
 
   const hasChanges = () => {
@@ -407,19 +414,7 @@ export default function Hero() {
       return true;
     }
 
-    if (
-      (heroData?.mainImage && !formData.mainImage) ||
-      (!heroData?.mainImage && formData.mainImage) ||
-      mainImageFile !== null ||
-      mainImagePreview !== null
-    ) {
-      return true;
-    }
-
-    if (
-      heroData &&
-      heroData.customerImages.length !== formData.customerImages.length
-    ) {
+    if (mainImageFile !== null || mainImagePreview !== null) {
       return true;
     }
 
@@ -433,10 +428,15 @@ export default function Hero() {
     }
 
     if (!heroData) {
-      return false;
+      return (
+        formData.title.trim() !== "" ||
+        formData.description.trim() !== "" ||
+        formData.primaryButtonText.trim() !== "" ||
+        formData.customerCount !== 0
+      );
     }
 
-    const hasFieldChanges =
+    return (
       heroData.title !== formData.title ||
       heroData.description !== formData.description ||
       heroData.primaryButtonText !== formData.primaryButtonText ||
@@ -444,9 +444,14 @@ export default function Hero() {
       heroData.secondaryButtonText !== formData.secondaryButtonText ||
       heroData.secondaryButtonHref !== formData.secondaryButtonHref ||
       heroData.customerCount !== formData.customerCount ||
-      heroData.customerText !== formData.customerText;
-
-    return hasFieldChanges;
+      heroData.customerText !== formData.customerText ||
+      (heroData.mainImage !== formData.mainImage && !mainImageFile) ||
+      hasOrderChanged ||
+      JSON.stringify(heroData.customerImages) !==
+        JSON.stringify(
+          formData.customerImages.filter((img) => typeof img === "string")
+        )
+    );
   };
 
   if (heroData === undefined) {
@@ -461,7 +466,6 @@ export default function Hero() {
           description="قم بتخصيص محتوى وعناصر القسم الرئيسي للصفحة الرئيسية."
         />
       </div>
-
       <form onSubmit={handleSubmit} className="space-y-6">
         <Tabs defaultValue="content" className="w-full" dir="rtl">
           <TabsList className="mb-4">
@@ -690,73 +694,23 @@ export default function Hero() {
                           </div>
                         </div>
                       ) : (
-                        formData.customerImages.map((image, index) => (
-                          <div key={index} className="relative group">
-                            <div className="flex items-center gap-4">
-                              {(!image ||
-                                (image instanceof File &&
-                                  !customerImagePreviews[index])) && (
-                                <ImageUpload
-                                  onFileSelect={(file) =>
-                                    handleCustomerImageSelect(index, file)
-                                  }
-                                  className={`cursor-pointer ${index > 0 && formData.customerImages[index - 1] ? "mt-4" : "mt-2"}`}
-                                />
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 lg:grid-cols-7 xl:grid-cols-8 gap-4">
+                          {formData.customerImages.map((image, index) => (
+                            <SortableCustomerImage
+                              key={index}
+                              index={index}
+                              image={image}
+                              customerImagePreviews={customerImagePreviews}
+                              customerImageUrls={Object.fromEntries(
+                                (customerImageUrls ?? [])
+                                  .map((url, index) => [index, url])
+                                  .filter(([_, url]) => url !== null)
                               )}
-                              {typeof image === "string" &&
-                                image &&
-                                customerImageUrls?.[index] && (
-                                  <div
-                                    className={`relative group ${index > 0 && formData.customerImages[index - 1] ? "mt-4" : ""}`}
-                                  >
-                                    <Image
-                                      src={customerImageUrls[index]}
-                                      alt={`Customer image ${index + 1}`}
-                                      width={96}
-                                      height={96}
-                                      className="object-cover rounded-lg border"
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="icon"
-                                      className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() =>
-                                        handleCustomerImageRemove(index)
-                                      }
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                )}
-                              {image instanceof File &&
-                                customerImagePreviews[index] && (
-                                  <div
-                                    className={`relative group ${index > 0 && formData.customerImages[index - 1] ? "mt-4" : ""}`}
-                                  >
-                                    <Image
-                                      src={customerImagePreviews[index]}
-                                      alt={`Customer image preview ${index + 1}`}
-                                      width={96}
-                                      height={96}
-                                      className="object-cover rounded-lg border"
-                                    />
-                                    <Button
-                                      type="button"
-                                      variant="destructive"
-                                      size="icon"
-                                      className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                      onClick={() =>
-                                        handleCustomerImageRemove(index)
-                                      }
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                )}
-                            </div>
-                          </div>
-                        ))
+                              onFileSelect={handleCustomerImageSelect}
+                              onRemove={handleCustomerImageRemove}
+                            />
+                          ))}
+                        </div>
                       )}
                     </SortableContext>
                   </DndContext>
@@ -785,6 +739,8 @@ export default function Hero() {
           <Button
             type="submit"
             disabled={loading || isUploading || !hasChanges()}
+            onClick={handleSubmit}
+            className="gap-2"
           >
             {loading ? (
               <>

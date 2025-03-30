@@ -83,9 +83,9 @@ export const CategoriesSection = () => {
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-12">
           <SectionHeading
-            title={pageData.title ?? "تصفح حسب الفئات"}
+            title={pageData.title || "تصفح حسب الفئات"}
             description={
-              pageData.description ?? "اكتشف منتجاتنا المميزة في مختلف الفئات"
+              pageData.description || "اكتشف منتجاتنا المميزة في مختلف الفئات"
             }
           />
         </div>

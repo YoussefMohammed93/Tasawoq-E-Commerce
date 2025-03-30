@@ -4,11 +4,49 @@ import Image from "next/image";
 import { useQuery } from "convex/react";
 import { Building2 } from "lucide-react";
 import { api } from "@/convex/_generated/api";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SectionHeading } from "@/components/ui/section-heading";
+
+const PartnersSectionSkeleton = () => {
+  return (
+    <section className="py-12 bg-background">
+      <div className="max-w-7xl mx-auto px-5">
+        <div className="text-center mb-12">
+          <Skeleton className="h-8 w-64 mx-auto mb-4" />
+          <Skeleton className="h-6 w-96 mx-auto" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-16">
+          {[...Array(2)].map((_, index) => (
+            <div
+              key={index}
+              className="flex flex-col items-center justify-center sm:hidden"
+            >
+              <Skeleton className="w-full aspect-square mb-4" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+          ))}
+          {[...Array(8)].map((_, index) => (
+            <div
+              key={index}
+              className="hidden sm:flex flex-col items-center justify-center"
+            >
+              <Skeleton className="w-full aspect-square mb-4" />
+              <Skeleton className="h-6 w-24" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+};
 
 export const PartnersSection = () => {
   const partners = useQuery(api.partners.getPartners);
   const pageData = useQuery(api.partners.getPartnersPage);
+
+  if (partners === undefined || pageData === undefined) {
+    return <PartnersSectionSkeleton />;
+  }
 
   if (!pageData?.isVisible) {
     return null;

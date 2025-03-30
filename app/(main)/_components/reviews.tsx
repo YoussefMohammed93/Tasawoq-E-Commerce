@@ -1,17 +1,14 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useKeenSlider } from "keen-slider/react";
 import { Calendar, StarIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
-
-const AUTOPLAY_INTERVAL = 3000;
 
 const reviews = [
   {
@@ -20,7 +17,7 @@ const reviews = [
     rating: 5,
     comment: "منتجات رائعة وخدمة عملاء ممتازة. سعيد",
     date: "2023-05-17",
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=1`,
+    avatar: "/avatar.png",
   },
   {
     id: 2,
@@ -28,7 +25,7 @@ const reviews = [
     rating: 4,
     comment: "جودة المنتجات ممتازة والتوصيل سريع. تجربة شراء موفقة",
     date: "2024-02-14",
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=2`,
+    avatar: "/avatar.png",
   },
   {
     id: 3,
@@ -36,7 +33,7 @@ const reviews = [
     rating: 5,
     comment: "خدمة عملاء متميزة وسرعة في الاستجابة. سأكرر التجربة بالتأكيد",
     date: "2024-02-13",
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=3`,
+    avatar: "/avatar.png",
   },
   {
     id: 4,
@@ -45,7 +42,7 @@ const reviews = [
     comment:
       "تجربة تسوق رائعة من البداية للنهاية. أنصح بالتعامل معهمتجربة تسوق رائعة من البداية للنهاية. أنصح بالتعامل معهم",
     date: "2024-02-12",
-    avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=4`,
+    avatar: "/avatar.png",
   },
 ];
 
@@ -117,8 +114,6 @@ export const ReviewsSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const isMobile = useIsMobile();
 
   const [sliderRef, instanceRef] = useKeenSlider({
     initial: 0,
@@ -141,37 +136,12 @@ export const ReviewsSection = () => {
     created() {
       setLoaded(true);
     },
-    dragStarted() {
-      setIsPaused(true);
-    },
-    dragEnded() {
-      setIsPaused(false);
-    },
   });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    if (!loaded || !instanceRef.current || isPaused || !isMobile) return;
-
-    const interval = setInterval(() => {
-      if (instanceRef.current) {
-        const lastSlide =
-          currentSlide === instanceRef.current.track.details.slides.length - 1;
-
-        if (lastSlide) {
-          instanceRef.current.moveToIdx(0);
-        } else {
-          instanceRef.current.next();
-        }
-      }
-    }, AUTOPLAY_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [loaded, currentSlide, instanceRef, isPaused, isMobile]);
 
   if (isLoading) {
     return <ReviewsSectionSkeleton />;
@@ -198,24 +168,21 @@ export const ReviewsSection = () => {
             description="ماذا يقول عملاؤنا عن تجربتهم معنا"
           />
         </div>
-
-        <div
-          className="relative"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-        >
+        <div className="relative">
           <div ref={sliderRef} className="keen-slider">
             {reviews.map((review) => (
               <div key={review.id} className="keen-slider__slide">
                 <Card className="p-6 pb-0 h-[200px]">
                   <div className="flex items-start gap-4">
-                    <img
-                      src={review.avatar}
-                      alt={review.name}
-                      className="w-12 h-12 rounded-full"
-                    />
+                    <div className="relative w-10 h-10">
+                      <Image
+                        src={review.avatar}
+                        alt={review.name}
+                        fill
+                        className="object-contain rounded-full"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                      />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="font-semibold mb-1">{review.name}</h3>
                       <div className="flex items-center gap-1 mb-2">
@@ -251,32 +218,30 @@ export const ReviewsSection = () => {
             <>
               <Button
                 size="icon"
-                className={`absolute top-1/2 -translate-y-1/2 -left-4 xl:-left-16 hidden md:flex ${
+                className={`absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-4 xl:-left-16 rounded-full flex ${
                   isAtEnd ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 onClick={() => instanceRef.current?.next()}
                 disabled={isAtEnd}
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="size-4" />
               </Button>
               <Button
                 size="icon"
-                className={`absolute top-1/2 -translate-y-1/2 -right-4 xl:-right-16 hidden md:flex ${
+                className={`absolute top-1/2 -translate-y-1/2 -right-2 sm:-right-4 xl:-right-16 rounded-full flex ${
                   isAtStart ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 onClick={() => instanceRef.current?.prev()}
                 disabled={isAtStart}
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="size-4" />
               </Button>
-              <div className="flex md:hidden flex-row-reverse justify-center gap-2 mt-4">
+              <div className="flex justify-center gap-2 mt-6">
                 {[...Array(totalSlides)].map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => {
                       instanceRef.current?.moveToIdx(idx);
-                      setIsPaused(true);
-                      setTimeout(() => setIsPaused(false), 5000);
                     }}
                     className={`w-2 h-2 rounded-full transition-all ${
                       currentSlide === idx ? "bg-primary w-4" : "bg-primary/20"

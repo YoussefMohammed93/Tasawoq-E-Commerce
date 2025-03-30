@@ -1,13 +1,14 @@
 "use client";
 
 import {
+  Sparkles,
   PlusIcon,
-  Loader2,
   EyeIcon,
   EyeOffIcon,
-  X,
-  Building2,
   Save,
+  Eye,
+  Loader2,
+  X,
 } from "lucide-react";
 import {
   DndContext,
@@ -18,70 +19,119 @@ import {
   useSensors,
   DragEndEvent,
 } from "@dnd-kit/core";
-import { toast } from "sonner";
-import Image from "next/image";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { toast } from "sonner";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
-import { Badge } from "@/components/ui/badge";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Id } from "@/convex/_generated/dataModel";
-import { useQuery, useMutation } from "convex/react";
-import { SortablePartner } from "./sortable-partner";
+import { Textarea } from "@/components/ui/textarea";
+import { SortableFeature } from "./sortable-feature";
 import Loading from "../categories/loading-skeleton";
+import { useState, useEffect, useMemo } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-interface PartnerFormData {
-  id?: Id<"partners">;
+interface Feature {
+  _id: Id<"features">;
   name: string;
+  description: string;
+  image: Id<"_storage">;
+  imageUrl?: string;
+  order: number;
+}
+
+interface FeatureFormData {
+  id?: Id<"features">;
+  name: string;
+  description: string;
   image: Id<"_storage">;
   imageUrl?: string;
 }
 
-export default function PartnersPage() {
+export default function StoreFeatures() {
   const [activeTab, setActiveTab] = useState("page-settings");
   const [pageTitle, setPageTitle] = useState("");
   const [pageDescription, setPageDescription] = useState("");
   const [isVisible, setIsVisible] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [localFeatures, setLocalFeatures] = useState<Array<Feature>>([]);
+  const [editingFeature, setEditingFeature] = useState<FeatureFormData | null>(
+    null
+  );
   const [formData, setFormData] = useState({
     name: "",
+    description: "",
     image: null as Id<"_storage"> | null,
   });
+  const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [editingPartner, setEditingPartner] = useState<PartnerFormData | null>(
-    null
-  );
 
-  const partners = useQuery(api.partners.getPartners);
-  const pageData = useQuery(api.partners.getPartnersPage);
-  const savePageMutation = useMutation(api.partners.savePage);
-  const savePartnerMutation = useMutation(api.partners.savePartner);
-  const deletePartnerMutation = useMutation(api.partners.deletePartner);
+  const features = useQuery(api.features.getFeatures);
+  const pageData = useQuery(api.features.getFeaturesPage);
+  const savePage = useMutation(api.features.saveFeaturesPage);
+  const updateOrder = useMutation(api.features.updateFeaturesOrder);
+  const deleteFeatureMutation = useMutation(api.features.deleteFeature);
+  const saveFeature = useMutation(api.features.saveFeature);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
   const deleteStorageId = useMutation(api.files.deleteStorageId);
-  const updatePartnersOrderMutation = useMutation(
-    api.partners.updatePartnersOrder
+
+  const imageUrls = useQuery(
+    api.files.getMultipleImageUrls,
+    features?.length
+      ? {
+          storageIds: features.map((feature) => feature.image).filter(Boolean),
+        }
+      : "skip"
   );
+
+  const featureImageUrls = useMemo(() => {
+    if (!features || !imageUrls) return {};
+
+    return features.reduce(
+      (acc, feature) => {
+        if (
+          feature.image &&
+          typeof imageUrls[feature.image as keyof typeof imageUrls] === "string"
+        ) {
+          acc[feature._id] = imageUrls[
+            feature.image as keyof typeof imageUrls
+          ] as string;
+        }
+        return acc;
+      },
+      {} as Record<Id<"features">, string>
+    );
+  }, [features, imageUrls]);
+
+  useEffect(() => {
+    if (features) {
+      setLocalFeatures(
+        features.map((feature) => ({
+          ...feature,
+          imageUrl: feature.imageUrl || undefined,
+        }))
+      );
+    }
+  }, [features]);
 
   useEffect(() => {
     if (pageData) {
@@ -91,70 +141,64 @@ export default function PartnersPage() {
     }
   }, [pageData]);
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (!over || active.id === over.id || !features) return;
+
+    const oldIndex = features.findIndex((feature) => feature._id === active.id);
+    const newIndex = features.findIndex((feature) => feature._id === over.id);
+
+    const newFeatures = arrayMove([...features], oldIndex, newIndex);
+    const featuresWithNewOrder = newFeatures.map((feature, index) => ({
+      ...feature,
+      order: index,
+    }));
+
+    setLocalFeatures(
+      featuresWithNewOrder.map((feature) => ({
+        ...feature,
+        imageUrl: feature.imageUrl || undefined,
+      }))
+    );
+  };
+
+  const handleDeleteFeature = async (id: Id<"features">) => {
+    try {
+      await deleteFeatureMutation({ id });
+      toast.success("تم حذف الميزة بنجاح");
+    } catch {
+      toast.error("حدث خطأ أثناء حذف الميزة");
+    }
+  };
+
+  const handleEditFeature = (feature: Feature) => {
+    const imageUrl = feature.imageUrl || featureImageUrls[feature._id];
+    setEditingFeature({
+      id: feature._id,
+      name: feature.name,
+      description: feature.description,
+      image: feature.image,
+      imageUrl: imageUrl,
+    });
+    setFormData({
+      name: feature.name,
+      description: feature.description,
+      image: feature.image,
+    });
+    setIsDialogOpen(true);
+  };
+
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-
-  const [localPartners, setLocalPartners] = useState<
-    Array<{
-      _id: Id<"partners">;
-      name: string;
-      image: Id<"_storage">;
-      imageUrl?: string;
-      order: number;
-    }>
-  >([]);
-
-  const [originalPartners, setOriginalPartners] = useState<
-    Array<{
-      _id: Id<"partners">;
-      name: string;
-      image: Id<"_storage">;
-      imageUrl?: string;
-      order: number;
-    }>
-  >([]);
-
-  useEffect(() => {
-    const sortedPartners = [...(partners || [])].sort(
-      (a, b) => a.order - b.order
-    );
-
-    const mappedPartners = sortedPartners.map((partner) => ({
-      _id: partner._id,
-      name: partner.name,
-      image: partner.image,
-      imageUrl: partner.imageUrl || undefined,
-      order: partner.order,
-    }));
-
-    setLocalPartners(mappedPartners);
-    setOriginalPartners(mappedPartners);
-  }, [partners]);
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (!over || active.id === over.id || !localPartners) return;
-
-    const oldIndex = localPartners.findIndex(
-      (partner) => partner._id === active.id
-    );
-    const newIndex = localPartners.findIndex(
-      (partner) => partner._id === over.id
-    );
-
-    const newPartners = arrayMove([...localPartners], oldIndex, newIndex);
-    const partnersWithNewOrder = newPartners.map((partner, index) => ({
-      ...partner,
-      order: index,
-    }));
-
-    setLocalPartners(partnersWithNewOrder);
-  };
 
   const hasChanges = () => {
     if (activeTab === "page-settings") {
@@ -166,13 +210,13 @@ export default function PartnersPage() {
     if (activeTab === "display-settings") {
       return isVisible !== (pageData?.isVisible ?? true);
     }
-    if (activeTab === "partners") {
-      return localPartners.some((localPartner, index) => {
-        const originalPartner = originalPartners?.[index];
+    if (activeTab === "features") {
+      return localFeatures.some((localFeature, index) => {
+        const originalFeature = features?.[index];
         return (
-          !originalPartner ||
-          localPartner._id !== originalPartner._id ||
-          localPartner.order !== originalPartner.order
+          !originalFeature ||
+          localFeature._id !== originalFeature._id ||
+          localFeature.order !== originalFeature.order
         );
       });
     }
@@ -184,42 +228,31 @@ export default function PartnersPage() {
 
     setLoading(true);
     try {
-      if (activeTab === "page-settings") {
-        await savePageMutation({
+      if (activeTab === "page-settings" || activeTab === "display-settings") {
+        await savePage({
           title: pageTitle,
           description: pageDescription,
           isVisible: isVisible,
         });
-      } else if (activeTab === "display-settings") {
-        await savePageMutation({
-          title: pageTitle,
-          description: pageDescription,
-          isVisible: isVisible,
-        });
-      } else if (activeTab === "partners") {
-        await updatePartnersOrderMutation({
-          partners: localPartners.map((partner, index) => ({
-            id: partner._id,
+      } else if (activeTab === "features") {
+        await updateOrder({
+          features: localFeatures.map((feature, index) => ({
+            id: feature._id,
             order: index,
           })),
         });
-        setOriginalPartners([...localPartners]);
       }
 
       toast.success("تم حفظ التغييرات بنجاح");
     } catch (error) {
       console.error("Save failed:", error);
       toast.error("حدث خطأ أثناء حفظ التغييرات");
-
-      if (activeTab === "partners") {
-        setLocalPartners([...originalPartners]);
-      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSavePartner = async (e: React.FormEvent) => {
+  const handleSaveFeature = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -227,8 +260,10 @@ export default function PartnersPage() {
       let imageStorageId = formData.image;
 
       if (selectedFile) {
-        if (editingPartner?.image) {
-          await deleteStorageId({ storageId: editingPartner.image });
+        if (editingFeature?.image) {
+          await deleteStorageId({
+            storageId: editingFeature.image as Id<"_storage">,
+          });
         }
 
         const uploadUrl = await generateUploadUrl();
@@ -241,41 +276,39 @@ export default function PartnersPage() {
         imageStorageId = storageId;
       }
 
-      const newOrder = editingPartner
-        ? localPartners.find((p) => p._id === editingPartner.id)?.order || 0
-        : localPartners.length;
+      const newOrder = editingFeature
+        ? localFeatures.find((f) => f._id === editingFeature.id)?.order || 0
+        : localFeatures.length;
 
-      await savePartnerMutation({
-        id: editingPartner?.id,
+      await saveFeature({
+        id: editingFeature?.id,
         name: formData.name.trim(),
+        description: formData.description.trim(),
         image: imageStorageId as Id<"_storage">,
         order: newOrder,
       });
 
-      setFormData({ name: "", image: null });
-      setImagePreview(null);
-      setSelectedFile(null);
-      setIsDialogOpen(false);
       toast.success(
-        editingPartner ? "تم تحديث الشريك بنجاح" : "تم إضافة الشريك بنجاح"
+        editingFeature ? "تم تحديث الميزة بنجاح" : "تمت إضافة الميزة بنجاح"
       );
-    } catch {
-      toast.error("حدث خطأ أثناء حفظ الشريك");
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error("Save failed:", error);
+      toast.error("حدث خطأ أثناء حفظ الميزة");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDeletePartner = async (id: Id<"partners">) => {
-    try {
-      await deletePartnerMutation({ id });
-      toast.success("تم حذف الشريك بنجاح");
-    } catch {
-      toast.error("حدث خطأ أثناء حذف الشريك");
-    }
+  const resetForm = () => {
+    setFormData({ name: "", description: "", image: null });
+    setSelectedFile(null);
+    setImagePreview(null);
+    setEditingFeature(null);
   };
 
-  if (partners === undefined || pageData === undefined) {
+  if (features === undefined || pageData === undefined) {
     return <Loading />;
   }
 
@@ -283,8 +316,8 @@ export default function PartnersPage() {
     <div className="flex flex-col min-h-screen">
       <div className="pt-14 mb-8">
         <Heading
-          title="تحرير قسم الشركاء"
-          description="قم بإدارة وتعديل قسم الشركاء في متجرك الإلكتروني."
+          title="مميزات المتجر"
+          description="إدارة وعرض مميزات متجرك الإلكتروني."
         />
       </div>
       <Tabs
@@ -296,12 +329,12 @@ export default function PartnersPage() {
         <TabsList className="mb-4">
           <TabsTrigger value="page-settings">إعدادات القسم</TabsTrigger>
           <TabsTrigger value="display-settings">إعدادات العرض</TabsTrigger>
-          <TabsTrigger value="partners">الشركاء</TabsTrigger>
+          <TabsTrigger value="features">المميزات</TabsTrigger>
         </TabsList>
         <TabsContent value="page-settings">
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-semibold">إعدادات قسم الشركاء</h3>
+              <h3 className="text-lg font-semibold">إعدادات قسم المميزات</h3>
               <p className="text-sm text-muted-foreground">
                 قم بتخصيص عنوان ووصف القسم
               </p>
@@ -310,17 +343,17 @@ export default function PartnersPage() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">عنوان القسم</label>
                 <Input
+                  placeholder="أدخل عنوان القسم"
                   value={pageTitle}
                   onChange={(e) => setPageTitle(e.target.value)}
-                  placeholder="أدخل عنوان القسم"
                 />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">وصف القسم</label>
                 <Input
+                  placeholder="أدخل وصف القسم"
                   value={pageDescription}
                   onChange={(e) => setPageDescription(e.target.value)}
-                  placeholder="أدخل وصف القسم"
                 />
               </div>
             </CardContent>
@@ -335,11 +368,11 @@ export default function PartnersPage() {
               </p>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between">
+              <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
                   <label className="text-sm font-medium">إظهار القسم</label>
                   <p className="text-sm text-muted-foreground">
-                    عند التعطيل، لن يظهر هذا القسم في الموقع
+                    تحكم في ظهور القسم في الصفحة الرئيسية
                   </p>
                 </div>
                 <Button
@@ -364,41 +397,40 @@ export default function PartnersPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="partners">
+        <TabsContent value="features">
           <Card>
             <CardHeader className="flex flex-row items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold">قائمة الشركاء</h3>
-                  <Badge variant="outline">{partners?.length || 0} شركاء</Badge>
+                  <h3 className="text-lg font-semibold">قائمة المميزات</h3>
+                  <Badge variant="outline">{features?.length || 0} ميزات</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground mt-3">
-                  {partners?.length === 0
-                    ? "لا يوجد شركاء حتى الآن"
-                    : "قائمة الشركاء المعتمدين"}
+                  {features?.length === 0
+                    ? "لا توجد مميزات حتى الآن"
+                    : "اسحب وأفلت لإعادة ترتيب المميزات"}
                 </p>
               </div>
               <Button
                 className="gap-2"
                 onClick={() => {
-                  setEditingPartner(null);
-                  setFormData({ name: "", image: null });
+                  resetForm();
                   setIsDialogOpen(true);
                 }}
               >
                 <PlusIcon className="h-4 w-4" />
-                إضافة شريك جديد
+                إضافة ميزة جديدة
               </Button>
             </CardHeader>
             <CardContent>
-              {!localPartners?.length ? (
+              {!features?.length ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
                   <div className="bg-muted p-4 rounded-full mb-4">
-                    <Building2 className="h-8 w-8 text-muted-foreground" />
+                    <Sparkles className="h-8 w-8 text-muted-foreground" />
                   </div>
-                  <h3 className="text-lg font-medium mb-2">لا يوجد شركاء</h3>
+                  <h3 className="text-lg font-medium mb-2">لا توجد مميزات</h3>
                   <p className="text-sm text-muted-foreground mb-4">
-                    ابدأ بإضافة شركاء جدد لمتجرك الإلكتروني
+                    ابدأ بإضافة مميزات جديدة لمتجرك الإلكتروني
                   </p>
                 </div>
               ) : (
@@ -408,33 +440,22 @@ export default function PartnersPage() {
                   onDragEnd={handleDragEnd}
                 >
                   <SortableContext
-                    items={localPartners?.map((partner) => partner._id) ?? []}
+                    items={localFeatures
+                      .sort((a, b) => a.order - b.order)
+                      .map((feature) => feature._id)}
                     strategy={verticalListSortingStrategy}
                   >
                     <div className="space-y-4">
-                      {localPartners?.map((partner) => (
-                        <SortablePartner
-                          key={partner._id}
-                          partner={{
-                            ...partner,
-                            imageUrl: partner.imageUrl || undefined,
-                          }}
-                          onDelete={handleDeletePartner}
-                          onEdit={(partner) => {
-                            setEditingPartner({
-                              id: partner._id,
-                              name: partner.name,
-                              image: partner.image,
-                              imageUrl: partner.imageUrl,
-                            });
-                            setFormData({
-                              name: partner.name,
-                              image: partner.image,
-                            });
-                            setIsDialogOpen(true);
-                          }}
-                        />
-                      ))}
+                      {localFeatures
+                        .sort((a, b) => a.order - b.order)
+                        .map((feature) => (
+                          <SortableFeature
+                            key={feature._id}
+                            feature={feature}
+                            onDelete={handleDeleteFeature}
+                            onEdit={handleEditFeature}
+                          />
+                        ))}
                     </div>
                   </SortableContext>
                 </DndContext>
@@ -457,7 +478,7 @@ export default function PartnersPage() {
                     pageTitle,
                     pageDescription,
                     isVisible,
-                    partners: localPartners,
+                    features: localFeatures,
                   },
                 },
                 "*"
@@ -466,7 +487,7 @@ export default function PartnersPage() {
           }}
           className="gap-2"
         >
-          <EyeIcon className="h-4 w-4" />
+          <Eye className="h-4 w-4" />
           معاينة
         </Button>
         <Button
@@ -482,59 +503,78 @@ export default function PartnersPage() {
           ) : (
             <>
               <Save className="h-4 w-4" />
-              حفظ التغييرات
+              {hasChanges() ? "حفظ التغييرات" : "حفظ التغييرات"}
             </>
           )}
         </Button>
       </div>
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) resetForm();
+          setIsDialogOpen(open);
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingPartner ? "تعديل الشريك" : "إضافة شريك جديد"}
+              {editingFeature ? "تعديل الميزة" : "إضافة ميزة جديدة"}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSavePartner} className="space-y-4">
+          <form onSubmit={handleSaveFeature} className="space-y-4">
             <div className="space-y-2">
-              <label className="text-sm font-medium">اسم الشريك</label>
+              <label className="text-sm font-medium">اسم الميزة</label>
               <Input
+                placeholder="أدخل اسم الميزة"
                 value={formData.name}
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, name: e.target.value }))
                 }
-                placeholder="أدخل اسم الشريك"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">شعار الشريك</label>
-              {(imagePreview || editingPartner?.imageUrl) && (
+              <label className="text-sm font-medium">وصف الميزة</label>
+              <Textarea
+                placeholder="أدخل وصف الميزة"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: e.target.value,
+                  }))
+                }
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">صورة الميزة</label>
+              {(imagePreview || editingFeature?.imageUrl) && (
                 <div className="relative group mb-4 w-24 h-24 mt-4">
                   <Image
-                    src={imagePreview || editingPartner?.imageUrl || ""}
-                    alt="Partner preview"
+                    src={imagePreview || editingFeature?.imageUrl || ""}
+                    alt="Feature preview"
                     fill
-                    className="object-cover rounded-lg border"
+                    className="object-cover rounded-lg border p-2"
                     sizes="96px"
                   />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className={cn(
-                      "absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity",
-                      editingPartner && "hidden"
-                    )}
-                    onClick={() => {
-                      if (imagePreview) {
-                        URL.revokeObjectURL(imagePreview);
-                        setImagePreview(null);
-                      }
-                      setFormData((prev) => ({ ...prev, image: null }));
-                      setSelectedFile(null);
-                    }}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  {!editingFeature && (
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="icon"
+                      className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => {
+                        if (imagePreview) {
+                          URL.revokeObjectURL(imagePreview);
+                          setImagePreview(null);
+                        }
+                        setFormData((prev) => ({ ...prev, image: null }));
+                        setSelectedFile(null);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               )}
               <ImageUpload
@@ -559,7 +599,8 @@ export default function PartnersPage() {
                 disabled={
                   isSubmitting ||
                   !formData.name ||
-                  (!editingPartner && !selectedFile)
+                  !formData.description ||
+                  (!editingFeature && !selectedFile)
                 }
               >
                 {isSubmitting ? (
@@ -567,7 +608,7 @@ export default function PartnersPage() {
                     <Loader2 className="h-4 w-4 animate-spin" />
                     جاري الحفظ...
                   </>
-                ) : editingPartner ? (
+                ) : editingFeature ? (
                   "تحديث"
                 ) : (
                   "إضافة"

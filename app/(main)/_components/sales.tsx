@@ -1,25 +1,22 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import "keen-slider/keen-slider.min.css";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useKeenSlider } from "keen-slider/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { ShoppingCart, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 
-const AUTOPLAY_INTERVAL = 3000;
-
 const salesProducts = [
   {
     id: 1,
     title: "حقيبة يد جلدية فاخرة",
-    image: "https://picsum.photos/400/400?random=20",
+    image: "/t-shirt.png",
     description: "حقيبة يد نسائية مصنوعة من الجلد الطبيعي الفاخر",
     category: "حقائب نسائية",
     price: 799.99,
@@ -28,7 +25,7 @@ const salesProducts = [
   {
     id: 2,
     title: "ساعة ذكية رياضية",
-    image: "https://picsum.photos/400/400?random=21",
+    image: "/t-shirt.png",
     description: "ساعة ذكية متعددة الوظائف لتتبع النشاط الرياضي",
     category: "الساعات الذكية",
     price: 499.99,
@@ -37,7 +34,7 @@ const salesProducts = [
   {
     id: 3,
     title: "نظارة شمسية كلاسيكية",
-    image: "https://picsum.photos/400/400?random=22",
+    image: "/t-shirt.png",
     description: "نظارة شمسية بتصميم كلاسيكي أنيق",
     category: "نظارات",
     price: 299.99,
@@ -46,7 +43,7 @@ const salesProducts = [
   {
     id: 4,
     title: "عطر فاخر للرجال",
-    image: "https://picsum.photos/400/400?random=23",
+    image: "/t-shirt.png",
     description: "عطر رجالي فاخر برائحة منعشة",
     category: "عطور",
     price: 450.99,
@@ -55,7 +52,7 @@ const salesProducts = [
   {
     id: 5,
     title: "عطر للرجال",
-    image: "https://picsum.photos/400/400?random=24",
+    image: "/t-shirt.png",
     description: "عطر رجالي فاخر برائحة منعشة",
     category: "عطور",
     price: 150.99,
@@ -95,18 +92,29 @@ export const SalesSectionSkeleton = () => {
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-5">
           <Skeleton className="h-10 w-48 mx-auto mb-4" />
-          <Skeleton className="h-6 w-96 mx-auto" />
+          <Skeleton className="h-6 w-64 sm:w-96 mx-auto" />
         </div>
         <div className="relative">
           <div className="keen-slider">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, index) => (
-                <SalesSkeletonItem key={index} />
-              ))}
+            <div className="w-full sm:hidden">
+              <div className="block sm:hidden">
+                <SalesSkeletonItem />
+              </div>
+            </div>
+            <div className="hidden sm:block w-full">
+              <div className="hidden w-full sm:grid sm:grid-cols-2 md:grid-cols-4 sm:gap-5">
+                <SalesSkeletonItem />
+                <SalesSkeletonItem />
+                <SalesSkeletonItem />
+                <SalesSkeletonItem />
+              </div>
             </div>
           </div>
-          <Skeleton className="absolute top-1/2 -translate-y-1/2 -left-4 xl:-left-16 h-10 w-10 rounded-full" />
-          <Skeleton className="absolute top-1/2 -translate-y-1/2 -right-4 xl:-right-16 h-10 w-10 rounded-full" />
+          <div className="flex flex-row-reverse justify-center gap-2 mt-4">
+            {[...Array(4)].map((_, idx) => (
+              <Skeleton key={idx} className="w-2 h-2 rounded-full" />
+            ))}
+          </div>
         </div>
       </div>
     </section>
@@ -117,8 +125,6 @@ export const SalesSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const isMobile = useIsMobile();
 
   const [sliderRef, instanceRef] = useKeenSlider({
     initial: 0,
@@ -144,37 +150,12 @@ export const SalesSection = () => {
     created() {
       setLoaded(true);
     },
-    dragStarted() {
-      setIsPaused(true);
-    },
-    dragEnded() {
-      setIsPaused(false);
-    },
   });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    if (!loaded || !instanceRef.current || isPaused || !isMobile) return;
-
-    const interval = setInterval(() => {
-      if (instanceRef.current) {
-        const lastSlide =
-          currentSlide === instanceRef.current.track.details.slides.length - 1;
-
-        if (lastSlide) {
-          instanceRef.current.moveToIdx(0);
-        } else {
-          instanceRef.current.next();
-        }
-      }
-    }, AUTOPLAY_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [loaded, currentSlide, instanceRef, isPaused, isMobile]);
 
   if (isLoading) {
     return <SalesSectionSkeleton />;
@@ -213,19 +194,11 @@ export const SalesSection = () => {
             description="اكتشف أفضل العروض والتخفيضات على منتجاتنا المميزة"
           />
         </div>
-
-        <div
-          className="relative"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-        >
+        <div className="relative">
           <div ref={sliderRef} className="keen-slider">
             {salesProducts.map((product) => {
               const originalPrice =
                 product.price / (1 - product.discountPercentage / 100);
-
               return (
                 <div className="keen-slider__slide" key={product.id}>
                   <Link
@@ -234,10 +207,12 @@ export const SalesSection = () => {
                   >
                     <Card className="h-[400px] lg:h-[380px] flex flex-col p-0">
                       <div className="relative w-full h-[250px] lg:h-[230px] overflow-hidden">
-                        <img
+                        <Image
                           src={product.image}
                           alt={product.title}
-                          className="absolute inset-0 w-full h-full object-cover rounded-t-xl"
+                          fill
+                          className="object-contain rounded-t-xl p-4"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                         />
                         <Badge
                           variant="destructive"
@@ -287,12 +262,11 @@ export const SalesSection = () => {
               );
             })}
           </div>
-
           {loaded && instanceRef.current && (
             <>
               <Button
                 size="icon"
-                className={`absolute top-1/2 -translate-y-1/2 -left-4 xl:-left-16 rounded-full hidden md:flex ${
+                className={`absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-4 xl:-left-16 rounded-full flex ${
                   isAtEnd ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 onClick={() => instanceRef.current?.next()}
@@ -302,7 +276,7 @@ export const SalesSection = () => {
               </Button>
               <Button
                 size="icon"
-                className={`absolute top-1/2 -translate-y-1/2 -right-4 xl:-right-16 rounded-full hidden md:flex ${
+                className={`absolute top-1/2 -translate-y-1/2 -right-2 sm:-right-4 xl:-right-16 rounded-full flex ${
                   isAtStart ? "opacity-50 cursor-not-allowed" : ""
                 }`}
                 onClick={() => instanceRef.current?.prev()}
@@ -310,14 +284,14 @@ export const SalesSection = () => {
               >
                 <ChevronRight className="size-5" />
               </Button>
-              <div className="flex md:hidden flex-row-reverse justify-center gap-2 mt-4">
-                {[...Array(totalSlides)].map((_, idx) => (
+              <div className="flex flex-row justify-center gap-2 mt-4">
+                {[
+                  ...Array(instanceRef.current.track.details.slides.length),
+                ].map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => {
                       instanceRef.current?.moveToIdx(idx);
-                      setIsPaused(true);
-                      setTimeout(() => setIsPaused(false), 5000);
                     }}
                     className={`w-2 h-2 rounded-full transition-all ${
                       currentSlide === idx ? "bg-primary w-4" : "bg-primary/20"

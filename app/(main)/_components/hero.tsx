@@ -59,7 +59,7 @@ export const HeroSection = () => {
 
   if (
     heroData === undefined ||
-    mainImageUrl === undefined ||
+    (heroData?.mainImage && mainImageUrl === undefined) ||
     (heroData?.customerImages?.length && customerImageUrls === undefined)
   ) {
     return <HeroSectionSkeleton />;

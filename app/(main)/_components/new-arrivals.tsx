@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ const newArrivals = [
   {
     id: 1,
     title: "حقيبة كتف عصرية",
-    image: "https://picsum.photos/400/400?random=10",
+    image: "/t-shirt.png",
     description: "حقيبة كتف نسائية أنيقة مناسبة للاستخدام اليومي",
     category: "حقائب نسائية",
     price: 299.99,
@@ -21,7 +21,7 @@ const newArrivals = [
   {
     id: 2,
     title: "سماعات بلوتوث لاسلكية",
-    image: "https://picsum.photos/400/400?random=11",
+    image: "/t-shirt.png",
     description: "سماعات بجودة صوت عالية مع خاصية إلغاء الضوضاء",
     category: "إلكترونيات",
     price: 499.99,
@@ -30,7 +30,7 @@ const newArrivals = [
   {
     id: 3,
     title: "نظارة شمسية أنيقة",
-    image: "https://picsum.photos/400/400?random=12",
+    image: "/t-shirt.png",
     description: "نظارة شمسية بتصميم عصري وحماية UV",
     category: "اكسسوارات",
     price: 199.99,
@@ -39,7 +39,7 @@ const newArrivals = [
   {
     id: 4,
     title: "نظارة شمسية جيدة",
-    image: "https://picsum.photos/400/400?random=13",
+    image: "/t-shirt.png",
     description: "نظارة شمسية بتصميم عصري وحماية UV",
     category: "اكسسوارات",
     price: 149.99,
@@ -78,10 +78,12 @@ export const NewArrivalsSection = () => {
             >
               <Card className="h-[400px] lg:h-[380px] flex flex-col p-0">
                 <div className="relative w-full h-[250px] lg:h-[230px] overflow-hidden">
-                  <img
+                  <Image
                     src={product.image}
                     alt={product.title}
-                    className="absolute inset-0 w-full h-full object-cover rounded-t-xl"
+                    fill
+                    className="object-contain rounded-t-xl p-4"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                   />
                   <Badge
                     variant="secondary"

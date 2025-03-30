@@ -1,25 +1,22 @@
-/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import "keen-slider/keen-slider.min.css";
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { useKeenSlider } from "keen-slider/react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
-
-const AUTOPLAY_INTERVAL = 3000;
+import { ShoppingCart, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 
 const products = [
   {
     id: 1,
     title: "حقيبة يد جلدية فاخرة",
-    image: "https://picsum.photos/400/400?random=1",
+    image: "/t-shirt.png",
     description: "حقيبة يد نسائية مصنوعة من الجلد الطبيعي الفاخر",
     category: "حقائب نسائية",
     price: 799.99,
@@ -28,7 +25,7 @@ const products = [
   {
     id: 2,
     title: "ساعة ذكية رياضية",
-    image: "https://picsum.photos/400/400?random=2",
+    image: "/t-shirt.png",
     description: "ساعة ذكية متعددة الوظائف لتتبع النشاط الرياضي",
     category: "الساعات الذكية",
     price: 499.99,
@@ -37,7 +34,7 @@ const products = [
   {
     id: 3,
     title: "نظارة شمسية كلاسيكية",
-    image: "https://picsum.photos/400/400?random=3",
+    image: "/t-shirt.png",
     description: "نظارة شمسية بتصميم كلاسيكي أنيق",
     category: "نظارات",
     price: 299.99,
@@ -46,7 +43,7 @@ const products = [
   {
     id: 4,
     title: "عطر فاخر للرجال",
-    image: "https://picsum.photos/400/400?random=4",
+    image: "/t-shirt.png",
     description: "عطر رجالي فاخر برائحة منعشة",
     category: "عطور",
     price: 450.99,
@@ -55,7 +52,7 @@ const products = [
   {
     id: 5,
     title: "عطر فاخر للرجال",
-    image: "https://picsum.photos/400/400?random=5",
+    image: "/t-shirt.png",
     description: "عطر رجالي فاخر برائحة منعشة",
     category: "عطور",
     price: 450.99,
@@ -95,18 +92,24 @@ export const ProductsSectionSkeleton = () => {
       <div className="max-w-7xl mx-auto px-5">
         <div className="text-center mb-5">
           <Skeleton className="h-10 w-48 mx-auto mb-4" />
-          <Skeleton className="h-6 w-96 mx-auto" />
+          <Skeleton className="h-6 w-64 sm:w-96 mx-auto" />
         </div>
         <div className="relative">
           <div className="keen-slider">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {[...Array(4)].map((_, index) => (
-                <ProductSkeletonItem key={index} />
-              ))}
+            <div className="w-full sm:hidden">
+              <div className="block sm:hidden">
+                <ProductSkeletonItem />
+              </div>
+            </div>
+            <div className="hidden sm:block w-full">
+              <div className="hidden w-full sm:grid sm:grid-cols-2 md:grid-cols-4 sm:gap-5">
+                <ProductSkeletonItem />
+                <ProductSkeletonItem />
+                <ProductSkeletonItem />
+                <ProductSkeletonItem />
+              </div>
             </div>
           </div>
-          <Skeleton className="absolute top-1/2 -translate-y-1/2 -left-4 xl:-left-16 h-10 w-10 rounded-full" />
-          <Skeleton className="absolute top-1/2 -translate-y-1/2 -right-4 xl:-right-16 h-10 w-10 rounded-full" />
           <div className="flex flex-row-reverse justify-center gap-2 mt-4">
             {[...Array(4)].map((_, idx) => (
               <Skeleton key={idx} className="w-2 h-2 rounded-full" />
@@ -122,11 +125,10 @@ export const ProductsSection = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const isMobile = useIsMobile();
 
   const [sliderRef, instanceRef] = useKeenSlider({
     initial: 0,
+    rtl: true,
     slides: {
       perView: 1,
       spacing: 16,
@@ -134,6 +136,7 @@ export const ProductsSection = () => {
     breakpoints: {
       "(min-width: 640px)": {
         slides: { perView: 2, spacing: 16 },
+        rtl: false,
       },
       "(min-width: 1024px)": {
         slides: { perView: 3, spacing: 16 },
@@ -148,37 +151,12 @@ export const ProductsSection = () => {
     created() {
       setLoaded(true);
     },
-    dragStarted() {
-      setIsPaused(true);
-    },
-    dragEnded() {
-      setIsPaused(false);
-    },
   });
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000);
     return () => clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    if (!loaded || !instanceRef.current || isPaused || !isMobile) return;
-
-    const interval = setInterval(() => {
-      if (instanceRef.current) {
-        const lastSlide =
-          currentSlide === instanceRef.current.track.details.slides.length - 1;
-
-        if (lastSlide) {
-          instanceRef.current.moveToIdx(0);
-        } else {
-          instanceRef.current.next();
-        }
-      }
-    }, AUTOPLAY_INTERVAL);
-
-    return () => clearInterval(interval);
-  }, [loaded, currentSlide, instanceRef, isPaused, isMobile]);
 
   if (isLoading) {
     return <ProductsSectionSkeleton />;
@@ -192,9 +170,10 @@ export const ProductsSection = () => {
         ? instanceRef.current.options.slides.perView
         : 1
       : 1;
-  const isAtStart = currentSlide === 0;
-  const isAtEnd =
+  // Reverse the logic for RTL
+  const isAtStart =
     currentSlide >= totalSlides - (typeof perView === "number" ? perView : 1);
+  const isAtEnd = currentSlide === 0;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -218,13 +197,7 @@ export const ProductsSection = () => {
           />
         </div>
 
-        <div
-          className="relative"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-          onTouchStart={() => setIsPaused(true)}
-          onTouchEnd={() => setIsPaused(false)}
-        >
+        <div className="relative">
           <div ref={sliderRef} className="keen-slider">
             {products.map((product) => {
               const originalPrice =
@@ -240,10 +213,12 @@ export const ProductsSection = () => {
                   >
                     <Card className="h-[400px] lg:h-[380px] flex flex-col p-0">
                       <div className="relative w-full h-[250px] lg:h-[230px] overflow-hidden">
-                        <img
+                        <Image
                           src={product.image}
                           alt={product.title}
-                          className="absolute inset-0 w-full h-full object-cover rounded-t-xl"
+                          fill
+                          className="object-contain rounded-t-xl p-4"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                         />
                         {product.discountPercentage > 0 && (
                           <Badge
@@ -310,12 +285,10 @@ export const ProductsSection = () => {
             <>
               <Button
                 size="icon"
-                className="absolute top-1/2 -translate-y-1/2 -left-4 xl:-left-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
+                className="absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-4 xl:-left-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
-                  instanceRef.current?.prev();
-                  setIsPaused(true);
-                  setTimeout(() => setIsPaused(false), 5000);
+                  instanceRef.current?.next(); // Changed from prev() to next()
                 }}
                 disabled={!instanceRef.current || isAtStart}
               >
@@ -324,38 +297,33 @@ export const ProductsSection = () => {
 
               <Button
                 size="icon"
-                className="absolute top-1/2 -translate-y-1/2 -right-4 xl:-right-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
+                className="absolute top-1/2 -translate-y-1/2 -right-2 sm:-right-4 xl:-right-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
                 onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
                   e.stopPropagation();
-                  instanceRef.current?.next();
-                  setIsPaused(true);
-                  setTimeout(() => setIsPaused(false), 5000);
+                  instanceRef.current?.prev(); // Changed from next() to prev()
                 }}
                 disabled={!instanceRef.current || isAtEnd}
               >
                 <ChevronRight className="size-5" />
               </Button>
-            </>
-          )}
-          {loaded && instanceRef.current && (
-            <div className="flex md:hidden flex-row-reverse justify-center gap-2 mt-4">
-              {[...Array(instanceRef.current.track.details.slides.length)].map(
-                (_, idx) => (
+
+              <div className="flex flex-row justify-center gap-2 mt-6">
+                {[
+                  ...Array(instanceRef.current.track.details.slides.length),
+                ].map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => {
                       instanceRef.current?.moveToIdx(idx);
-                      setIsPaused(true);
-                      setTimeout(() => setIsPaused(false), 5000);
                     }}
                     className={`w-2 h-2 rounded-full transition-all ${
                       currentSlide === idx ? "bg-primary w-4" : "bg-primary/20"
                     }`}
                     aria-label={`الانتقال إلى الشريحة ${idx + 1}`}
                   />
-                )
-              )}
-            </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </div>
