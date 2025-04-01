@@ -340,7 +340,9 @@ export default function ProductsPage() {
 
     const matchesSizes =
       selectedSizes.length === 0 ||
-      selectedSizes.some((size) => product.sizes.includes(size));
+      selectedSizes.some((size) =>
+        product.sizes.some((productSize) => productSize.name === size)
+      );
 
     return (
       matchesStatus &&
@@ -578,7 +580,7 @@ export default function ProductsPage() {
                           <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
                             {product.name}
                           </h3>
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3">
+                          <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
                             {product.description}
                           </p>
                           <div className="flex items-center justify-between mb-3 sm:mb-4">

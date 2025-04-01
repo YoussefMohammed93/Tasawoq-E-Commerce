@@ -93,7 +93,12 @@ export default defineSchema({
     price: v.number(),
     discountPercentage: v.number(),
     quantity: v.number(),
-    sizes: v.array(v.string()),
+    sizes: v.array(
+      v.object({
+        name: v.string(),
+        price: v.number(),
+      })
+    ),
     colors: v.array(
       v.object({
         name: v.string(),

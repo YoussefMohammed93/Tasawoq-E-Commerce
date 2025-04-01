@@ -50,7 +50,12 @@ export const saveProduct = mutation({
     price: v.number(),
     discountPercentage: v.number(),
     quantity: v.number(),
-    sizes: v.array(v.string()),
+    sizes: v.array(
+      v.object({
+        name: v.string(),
+        price: v.number(),
+      })
+    ),
     colors: v.array(
       v.object({
         name: v.string(),
@@ -64,15 +69,25 @@ export const saveProduct = mutation({
     const { id, ...productData } = args;
     const now = new Date().toISOString();
 
+    const sortedSizes = [...productData.sizes].sort((a, b) => {
+      const sizeOrder = ["XS", "S", "M", "L", "XL", "XXL"];
+      return sizeOrder.indexOf(a.name) - sizeOrder.indexOf(b.name);
+    });
+
+    const mainPrice =
+      sortedSizes.length > 0 ? sortedSizes[0].price : productData.price;
+
     if (id) {
       return await ctx.db.patch(id, {
         ...productData,
+        price: mainPrice,
         updatedAt: now,
       });
     }
 
     return await ctx.db.insert("products", {
       ...productData,
+      price: mainPrice,
       createdAt: now,
       updatedAt: now,
     });

@@ -107,3 +107,11 @@ export const deleteCategoryImage = mutation({
     return await ctx.storage.delete(storageId);
   },
 });
+
+// Get a single category by ID
+export const getCategory = query({
+  args: { categoryId: v.id("categories") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.categoryId);
+  },
+});

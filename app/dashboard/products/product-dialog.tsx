@@ -78,7 +78,7 @@ export function ProductDialog({
     price: "",
     discountPercentage: "0",
     quantity: "",
-    sizes: [] as string[],
+    sizes: [] as { name: string; price: number }[],
     colors: [] as { name: string; value: string }[],
     categoryId: "",
     badges: [] as string[],
@@ -161,7 +161,10 @@ export function ProductDialog({
         price: initialData.price.toString(),
         discountPercentage: initialData.discountPercentage.toString(),
         quantity: initialData.quantity.toString(),
-        sizes: initialData.sizes,
+        sizes: initialData.sizes.map((size) => ({
+          name: size,
+          price: initialData.price,
+        })),
         colors: initialData.colors,
         categoryId: initialData.categoryId,
         badges: initialData.badges,
@@ -301,11 +304,31 @@ export function ProductDialog({
   };
 
   const toggleSize = (size: string) => {
+    setFormData((prev) => {
+      const existingSize = prev.sizes.find((s) => s.name === size);
+      if (existingSize) {
+        return {
+          ...prev,
+          sizes: prev.sizes.filter((s) => s.name !== size),
+        };
+      } else {
+        return {
+          ...prev,
+          sizes: [
+            ...prev.sizes,
+            { name: size, price: Number(prev.price) || 0 },
+          ],
+        };
+      }
+    });
+  };
+
+  const updateSizePrice = (sizeName: string, price: string) => {
     setFormData((prev) => ({
       ...prev,
-      sizes: prev.sizes.includes(size)
-        ? prev.sizes.filter((s) => s !== size)
-        : [...prev.sizes, size],
+      sizes: prev.sizes.map((s) =>
+        s.name === sizeName ? { ...s, price: Number(price) || 0 } : s
+      ),
     }));
   };
 
@@ -478,24 +501,38 @@ export function ProductDialog({
               <label className="text-sm font-medium block">
                 المقاسات المتوفرة
               </label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {AVAILABLE_SIZES.map((size) => (
                   <div
                     key={size}
-                    className="flex items-center bg-secondary/20 rounded-lg p-2 hover:bg-secondary/30 transition-colors"
+                    className="flex flex-col bg-secondary/20 rounded-lg p-2 hover:bg-secondary/30 transition-colors"
                   >
-                    <Checkbox
-                      id={`size-${size}`}
-                      checked={formData.sizes.includes(size)}
-                      onCheckedChange={() => toggleSize(size)}
-                      className="ml-2 size-5"
-                    />
-                    <label
-                      htmlFor={`size-${size}`}
-                      className="text-sm font-medium leading-none cursor-pointer flex-1 mt-1"
-                    >
-                      {size}
-                    </label>
+                    <div className="flex items-center mb-2">
+                      <Checkbox
+                        id={`size-${size}`}
+                        className="ml-2 size-5"
+                        checked={formData.sizes.some((s) => s.name === size)}
+                        onCheckedChange={() => toggleSize(size)}
+                      />
+                      <label
+                        htmlFor={`size-${size}`}
+                        className="text-sm font-medium leading-none cursor-pointer flex-1 mt-1"
+                      >
+                        {size}
+                      </label>
+                    </div>
+                    {formData.sizes.some((s) => s.name === size) && (
+                      <Input
+                        type="number"
+                        placeholder="السعر"
+                        value={
+                          formData.sizes.find((s) => s.name === size)?.price ||
+                          ""
+                        }
+                        onChange={(e) => updateSizePrice(size, e.target.value)}
+                        className="mt-2"
+                      />
+                    )}
                   </div>
                 ))}
               </div>

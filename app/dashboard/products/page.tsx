@@ -501,6 +501,7 @@ export default function ProductsPage() {
                             (url): url is string =>
                               url !== undefined && url !== null
                           ) ?? [],
+                        sizes: product.sizes.map((size) => size.name),
                       })
                     }
                   >
@@ -519,6 +520,7 @@ export default function ProductsPage() {
                             (url): url is string =>
                               url !== undefined && url !== null
                           ) ?? [],
+                        sizes: product.sizes.map((size) => size.name),
                       })
                     }
                   >
@@ -537,6 +539,7 @@ export default function ProductsPage() {
                             (url): url is string =>
                               url !== undefined && url !== null
                           ) ?? [],
+                        sizes: product.sizes.map((size) => size.name),
                       });
                       setShowDeleteDialog(true);
                     }}
@@ -657,12 +660,32 @@ export default function ProductsPage() {
                   <Separator />
                   <div className="space-y-4">
                     <div>
-                      <Label>المقاسات المتوفرة</Label>
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <Label>المقاسات والأسعار</Label>
+                      <div className="grid gap-2 mt-2">
                         {previewProduct.sizes.map((size) => (
-                          <Badge key={size} variant="outline">
-                            {size}
-                          </Badge>
+                          <div
+                            key={size}
+                            className="flex items-center justify-between p-2 border rounded"
+                          >
+                            <Badge variant="outline">{size}</Badge>
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground line-through">
+                                {previewProduct.price} ر.س
+                              </span>
+                              {previewProduct.discountPercentage > 0 && (
+                                <>
+                                  <span className="font-semibold text-primary">
+                                    {(
+                                      previewProduct.price *
+                                      (1 -
+                                        previewProduct.discountPercentage / 100)
+                                    ).toFixed(2)}{" "}
+                                    ر.س
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                          </div>
                         ))}
                       </div>
                     </div>
