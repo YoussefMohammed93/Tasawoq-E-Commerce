@@ -112,4 +112,15 @@ export default defineSchema({
   })
     .index("by_category", ["categoryId"])
     .index("by_created", ["createdAt"]),
+
+  reviews: defineTable({
+    userId: v.id("users"),
+    productId: v.id("products"),
+    rating: v.number(),
+    comment: v.string(),
+    createdAt: v.string(),
+  })
+    .index("by_product", ["productId"])
+    .index("by_user", ["userId"])
+    .index("by_created", ["createdAt"]),
 });

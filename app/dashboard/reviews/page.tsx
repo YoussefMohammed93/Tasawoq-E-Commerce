@@ -9,6 +9,7 @@ import {
   MessageCircleIcon,
   TrashIcon,
   PackageIcon,
+  Loader2,
 } from "lucide-react";
 import {
   Select,
@@ -31,65 +32,61 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Card, CardContent } from "@/components/ui/card";
-
-const generateReviews = () => {
-  const products = [
-    { name: "حقيبة يد جلدية", image: "https://picsum.photos/200/200?random=1" },
-    { name: "ساعة ذكية", image: "https://picsum.photos/200/200?random=2" },
-    { name: "حذاء رياضي", image: "https://picsum.photos/200/200?random=3" },
-    { name: "نظارة شمسية", image: "https://picsum.photos/200/200?random=4" },
-    { name: "سماعات لاسلكية", image: "https://picsum.photos/200/200?random=5" },
-    { name: "محفظة جلدية", image: "https://picsum.photos/200/200?random=6" },
-  ];
-
-  const customers = [
-    "أحمد محمد",
-    "سارة أحمد",
-    "محمد علي",
-    "فاطمة حسن",
-    "عمر خالد",
-    "ليلى عبدالله",
-    "يوسف إبراهيم",
-    "نور محمد",
-  ];
-
-  const comments = [
-    "منتج رائع! الجودة ممتازة والتوصيل كان سريع. أنصح به بشدة.",
-    "جودة المنتج تستحق السعر. راضٍ عن الشراء.",
-    "تجربة شراء موفقة، المنتج مطابق للمواصفات.",
-    "منتج جيد ولكن السعر مرتفع قليلاً.",
-    "الجودة متوسطة، يحتاج لبعض التحسينات.",
-    "خدمة ممتازة وتوصيل سريع.",
-    "المنتج يستحق التجربة، سعيد بالشراء.",
-    "تجربة شراء إيجابية، سأكرر التجربة.",
-  ];
-
-  return Array.from({ length: 50 }, (_, i) => ({
-    id: i + 1,
-    customerName: customers[Math.floor(Math.random() * customers.length)],
-    ...products[Math.floor(Math.random() * products.length)],
-    rating: Math.floor(Math.random() * 3) + 3,
-    comment: comments[Math.floor(Math.random() * comments.length)],
-    date: new Date(
-      Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
-    )
-      .toISOString()
-      .split("T")[0],
-  }));
-};
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ReviewsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [ratingFilter, setRatingFilter] = useState("all");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const ITEMS_PER_PAGE = 5;
 
-  const allReviews = generateReviews();
+  const allReviews = useQuery(api.reviews.getAllReviews) || [];
+  const deleteReviewMutation = useMutation(api.reviews.adminDeleteReview);
+
+  const handleDeleteReview = async () => {
+    if (!reviewToDelete) return;
+
+    setIsDeleting(true);
+    try {
+      await deleteReviewMutation({
+        reviewId: reviewToDelete as Id<"reviews">,
+      });
+      toast.success("تم حذف التقييم بنجاح");
+    } catch (error) {
+      console.error("Error deleting review:", error);
+      toast.error("حدث خطأ أثناء حذف التقييم");
+    } finally {
+      setIsDeleting(false);
+      setReviewToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const confirmDeleteReview = (reviewId: string) => {
+    setReviewToDelete(reviewId);
+    setIsDeleteDialogOpen(true);
+  };
 
   const filteredReviews = allReviews.filter((review) => {
     const matchesSearch =
-      review.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      review.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      review.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       review.comment.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesRating =
@@ -131,6 +128,15 @@ export default function ReviewsPage() {
     setCurrentPage(1);
   };
 
+  if (!allReviews) {
+    return (
+      <div className="flex flex-col min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <p className="mt-2 text-muted-foreground">جاري تحميل التقييمات...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col min-h-screen">
       <div className="pt-14 mb-8">
@@ -153,7 +159,7 @@ export default function ReviewsPage() {
                 <p className="text-sm text-muted-foreground">
                   إجمالي التقييمات
                 </p>
-                <p className="text-2xl font-bold">{allReviews.length}</p>
+                <p className="text-2xl font-bold">{allReviews?.length || 0}</p>
               </div>
             </div>
           </CardContent>
@@ -167,10 +173,14 @@ export default function ReviewsPage() {
               <div>
                 <p className="text-sm text-muted-foreground">متوسط التقييم</p>
                 <p className="text-2xl font-bold">
-                  {(
-                    allReviews.reduce((acc, review) => acc + review.rating, 0) /
-                    allReviews.length
-                  ).toFixed(1)}
+                  {allReviews.length > 0
+                    ? (
+                        allReviews.reduce(
+                          (acc, review) => acc + review.rating,
+                          0
+                        ) / allReviews.length
+                      ).toFixed(1)
+                    : "0.0"}
                 </p>
               </div>
             </div>
@@ -187,7 +197,7 @@ export default function ReviewsPage() {
                   المنتجات المقيمة
                 </p>
                 <p className="text-2xl font-bold">
-                  {new Set(allReviews.map((review) => review.name)).size}
+                  {new Set(allReviews.map((review) => review.productId)).size}
                 </p>
               </div>
             </div>
@@ -229,60 +239,82 @@ export default function ReviewsPage() {
       </div>
 
       <div className="space-y-4">
-        {paginatedReviews.map((review) => (
-          <Card key={review.id} className="border">
-            <CardContent className="px-6 py-0">
-              <div className="flex gap-4">
-                <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
-                  <img
-                    src={review.image}
-                    alt={review.name}
-                    className="object-cover w-full h-full"
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start flex-col sm:flex-row justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <h3 className="font-semibold">{review.customerName}</h3>
-                        <div className="flex">
-                          {[...Array(5)].map((_, i) => (
-                            <StarIcon
-                              key={i}
-                              className={`h-4 w-4 ${
-                                i < review.rating
-                                  ? "text-amber-500 fill-amber-500"
-                                  : "text-gray-300"
-                              }`}
-                            />
-                          ))}
+        {paginatedReviews.length > 0 ? (
+          paginatedReviews.map((review) => (
+            <Card key={review._id} className="border">
+              <CardContent className="px-6 py-0">
+                <div className="flex gap-4">
+                  <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                    <img
+                      src={review.productImage || "/placeholder-product.jpg"}
+                      alt={review.productName}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start flex-col sm:flex-row justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <h3 className="font-semibold">{review.userName}</h3>
+                          <div className="flex">
+                            {[...Array(5)].map((_, i) => (
+                              <StarIcon
+                                key={i}
+                                className={`h-4 w-4 ${
+                                  i < review.rating
+                                    ? "text-amber-500 fill-amber-500"
+                                    : "text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
                         </div>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          اسم المنتج : <strong>{review.productName}</strong>
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          التعليق : <b>{review.comment}</b>
+                        </p>
                       </div>
-                      <p className="text-sm text-muted-foreground mb-2">
-                        اسم المنتج : <strong>{review.name}</strong>
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        التعليق : <b>{review.comment}</b>
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm text-muted-foreground whitespace-nowrap">
-                        {new Date(review.date).toLocaleDateString("ar-SA")}
-                      </span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm text-muted-foreground whitespace-nowrap">
+                          {new Date(review.createdAt).toLocaleDateString(
+                            "ar-SA"
+                          )}
+                        </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+                          onClick={() => confirmDeleteReview(review._id)}
+                          disabled={isDeleting}
+                        >
+                          {isDeleting && reviewToDelete === review._id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <TrashIcon className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          <div className="text-center py-16">
+            <div className="flex flex-col items-center gap-3">
+              <MessageCircleIcon className="h-12 w-12 text-muted-foreground/30" />
+              <h3 className="font-semibold text-lg">
+                لم يتم العثور على تقييمات
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                لا توجد تقييمات متطابقة مع معايير البحث الحالية
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="mt-6 flex justify-center">
@@ -327,6 +359,40 @@ export default function ReviewsPage() {
           </PaginationContent>
         </Pagination>
       </div>
+
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              هل أنت متأكد من حذف هذا التقييم؟
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              هذا الإجراء لا يمكن التراجع عنه. سيتم حذف التقييم نهائياً من قاعدة
+              البيانات.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteReview}
+              className="bg-red-500 hover:bg-red-600"
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  جاري الحذف...
+                </>
+              ) : (
+                "حذف"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

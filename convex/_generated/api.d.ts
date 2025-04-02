@@ -22,6 +22,7 @@ import type * as http from "../http.js";
 import type * as newsletter from "../newsletter.js";
 import type * as partners from "../partners.js";
 import type * as products from "../products.js";
+import type * as reviews from "../reviews.js";
 import type * as users from "../users.js";
 
 /**
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   newsletter: typeof newsletter;
   partners: typeof partners;
   products: typeof products;
+  reviews: typeof reviews;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

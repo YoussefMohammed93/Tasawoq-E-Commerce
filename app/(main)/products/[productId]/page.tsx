@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { StarIcon } from "lucide-react";
 import { notFound } from "next/navigation";
 import { useParams } from "next/navigation";
@@ -34,9 +34,28 @@ import { MessageSquare, ThumbsUp } from "lucide-react";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
 import { Loader2, Minus, Plus, Heart, ShoppingCart } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Pencil, Trash2, Calendar } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ProductReview {
-  id: string;
+  _id: string;
   userId: string;
   userName: string;
   rating: number;
@@ -45,35 +64,231 @@ interface ProductReview {
   userImage?: string;
 }
 
-const ReviewCard = ({ review }: { review: ProductReview }) => {
+interface ReviewCardProps {
+  review: ProductReview;
+  onDelete: (id: string) => Promise<void>;
+  onEdit: (id: string, newRating: number, newComment: string) => Promise<void>;
+  isCurrentUserReview: boolean;
+}
+
+const ReviewCard = ({
+  review,
+  onDelete,
+  onEdit,
+  isCurrentUserReview,
+}: ReviewCardProps) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editedRating, setEditedRating] = useState(review.rating);
+  const [editedComment, setEditedComment] = useState(review.comment);
+  const [hoveredRating, setHoveredRating] = useState(0);
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      await onDelete(review._id);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
+    }
+  };
+
+  const handleEdit = async () => {
+    try {
+      setIsEditing(true);
+      await onEdit(review._id, editedRating, editedComment);
+      setShowEditDialog(false);
+    } finally {
+      setIsEditing(false);
+    }
+  };
+
   return (
-    <Card className="p-6">
-      <div className="flex items-start gap-4">
-        <Avatar className="h-10 w-10">
-          <AvatarImage src={review.userImage} alt={review.userName} />
-          <AvatarFallback>{review.userName.slice(0, 2)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold mb-1">{review.userName}</h3>
-          <div className="flex items-center gap-1 mb-2">
-            {[...Array(5)].map((_, i) => (
-              <StarIcon
-                key={i}
-                className={`h-4 w-4 ${
-                  i < review.rating
-                    ? "text-amber-500 fill-amber-500"
-                    : "text-gray-300"
-                }`}
-              />
-            ))}
+    <>
+      <Card className="group p-0 relative">
+        <CardContent className="p-3">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <Avatar className="hidden sm:block h-12 w-12 border-2 border-primary/10 self-start">
+              <AvatarImage src={review.userImage} alt={review.userName} />
+              <AvatarFallback className="bg-primary/5">
+                {review.userName.slice(0, 2)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <Avatar className="sm:hidden h-12 w-12 border-2 border-primary/10 self-start">
+                  <AvatarImage src={review.userImage} alt={review.userName} />
+                  <AvatarFallback className="bg-primary/5">
+                    {review.userName.slice(0, 2)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="w-full flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-0">
+                  <div>
+                    <div className="flex sm:items-center flex-col sm:flex-row flex-wrap gap-2">
+                      <h3 className="font-semibold text-base sm:text-lg">
+                        {review.userName}
+                      </h3>
+                      <Badge
+                        variant="outline"
+                        className="text-xs whitespace-nowrap"
+                      >
+                        <Calendar className="mr-1 h-3 w-3" />
+                        {new Date(review.createdAt).toLocaleDateString("ar-SA")}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1.5">
+                      {[...Array(5)].map((_, i) => (
+                        <StarIcon
+                          key={i}
+                          className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
+                            i < review.rating
+                              ? "text-amber-500 fill-amber-500"
+                              : "text-gray-300"
+                          }`}
+                        />
+                      ))}
+                      <span className="text-xs sm:text-sm text-muted-foreground ml-2">
+                        ({review.rating} من 5)
+                      </span>
+                    </div>
+                  </div>
+                  {isCurrentUserReview && (
+                    <div className="absolute top-1 left-3 sm:relative sm:top-auto sm:left-auto flex items-center gap-2 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity mt-2 sm:mt-0">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-7 w-7 sm:h-8 sm:w-8 hover:bg-primary/10 hover:text-primary"
+                        onClick={() => setShowEditDialog(true)}
+                      >
+                        <Pencil className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 sm:h-8 sm:w-8 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:text-destructive"
+                        onClick={() => setShowDeleteDialog(true)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <p className="mt-3 mr-2 text-base sm:text-lg text-muted-foreground leading-relaxed break-words">
+                {review.comment}
+              </p>
+            </div>
           </div>
-          <p className="text-muted-foreground">{review.comment}</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            {new Date(review.createdAt).toLocaleDateString("ar-SA")}
-          </p>
-        </div>
-      </div>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {/* Delete Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>حذف التقييم</AlertDialogTitle>
+            <AlertDialogDescription>
+              هل أنت متأكد من حذف هذا التقييم؟ لا يمكن التراجع عن هذا الإجراء.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>إلغاء</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  جاري الحذف...
+                </>
+              ) : (
+                "حذف التقييم"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>تعديل التقييم</DialogTitle>
+            <DialogDescription>
+              قم بتعديل تقييمك وتعليقك على المنتج
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">التقييم</label>
+              <div className="flex gap-1">
+                {[...Array(5)].map((_, index) => {
+                  const starValue = index + 1;
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      className="hover:scale-110 transition cursor-pointer"
+                      onClick={() => setEditedRating(starValue)}
+                      onMouseEnter={() => setHoveredRating(starValue)}
+                      onMouseLeave={() => setHoveredRating(0)}
+                    >
+                      <StarIcon
+                        className={`h-6 w-6 transition-colors ${
+                          (
+                            hoveredRating
+                              ? hoveredRating >= starValue
+                              : editedRating >= starValue
+                          )
+                            ? "text-amber-500 fill-amber-500"
+                            : "text-gray-300"
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+                {editedRating > 0 && (
+                  <span className="text-sm text-muted-foreground mr-2 mt-1">
+                    ({editedRating} من 5)
+                  </span>
+                )}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">التعليق</label>
+              <Textarea
+                value={editedComment}
+                onChange={(e) => setEditedComment(e.target.value)}
+                className="min-h-[100px]"
+                disabled={isEditing}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowEditDialog(false)}
+              disabled={isEditing}
+            >
+              إلغاء
+            </Button>
+            <Button onClick={handleEdit} disabled={isEditing}>
+              {isEditing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  جاري الحفظ...
+                </>
+              ) : (
+                "حفظ التعديلات"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
@@ -86,7 +301,13 @@ export default function ProductPage() {
   const category = useQuery(api.categories.getCategory, {
     categoryId: product?.categoryId as Id<"categories">,
   });
-
+  const reviews =
+    useQuery(api.reviews.getProductReviews, {
+      productId: productId as Id<"products">,
+    }) || [];
+  const currentUser = useQuery(api.users.currentUser);
+  const addReviewMutation = useMutation(api.reviews.addReview);
+  const deleteReviewMutation = useMutation(api.reviews.deleteReview);
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [quantity, setQuantity] = useState(1);
@@ -94,6 +315,8 @@ export default function ProductPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [rating, setRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
   if (!product) {
     return (
@@ -112,26 +335,41 @@ export default function ProductPage() {
   const mainImageToShow =
     selectedImage || product.mainImageUrl || "/placeholder-product.jpg";
 
-  const reviews: ProductReview[] = [
-    {
-      id: "1",
-      userId: "user1",
-      userName: "أحمد محمد",
-      rating: 5,
-      comment: "منتج رائع! الجودة ممتازة والتوصيل كان سريع. أنصح به بشدة.",
-      createdAt: "2024-02-20",
-      userImage: "/avatar.png",
-    },
-    {
-      id: "2",
-      userId: "user2",
-      userName: "سارة أحمد",
-      rating: 4,
-      comment: "جودة المنتج تستحق السعر. راضٍ عن الشراء.",
-      createdAt: "2024-02-19",
-      userImage: "/avatar.png",
-    },
-  ];
+  const handleSubmitReview = async () => {
+    if (!currentUser) {
+      toast.error("يجب تسجيل الدخول لإضافة تقييم");
+      return;
+    }
+
+    if (rating === 0) {
+      toast.error("يرجى اختيار تقييم");
+      return;
+    }
+
+    if (!comment.trim()) {
+      toast.error("يرجى كتابة تعليق");
+      return;
+    }
+
+    setIsSubmittingReview(true);
+
+    try {
+      await addReviewMutation({
+        productId: productId as Id<"products">,
+        rating,
+        comment,
+      });
+
+      toast.success("تم إضافة تقييمك بنجاح");
+      setRating(0);
+      setComment("");
+    } catch (error) {
+      console.error("Error submitting review:", error);
+      toast.error("حدث خطأ أثناء إضافة التقييم");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -412,12 +650,14 @@ export default function ProductPage() {
                       متوسط التقييم
                     </p>
                     <p className="text-2xl font-bold">
-                      {(
-                        reviews.reduce(
-                          (acc, review) => acc + review.rating,
-                          0
-                        ) / reviews.length
-                      ).toFixed(1)}
+                      {reviews.length > 0
+                        ? (
+                            reviews.reduce(
+                              (acc, review) => acc + review.rating,
+                              0
+                            ) / reviews.length
+                          ).toFixed(1)
+                        : "0.0"}
                     </p>
                   </div>
                 </div>
@@ -443,18 +683,20 @@ export default function ProductPage() {
                   <div>
                     <p className="text-sm text-muted-foreground">نسبة الرضا</p>
                     <p className="text-2xl font-bold">
-                      {Math.round(
-                        (reviews.filter((r) => r.rating >= 4).length /
-                          reviews.length) *
-                          100
-                      )}
+                      {reviews.length > 0
+                        ? Math.round(
+                            (reviews.filter((r) => r.rating >= 4).length /
+                              reviews.length) *
+                              100
+                          )
+                        : 0}
                       %
                     </p>
                   </div>
                 </div>
               </Card>
             </div>
-            <Card className="mb-8">
+            <Card className="mb-8" id="add-review-section">
               <CardHeader>
                 <CardTitle>أضف تقييمك</CardTitle>
                 <CardDescription>شاركنا رأيك في المنتج</CardDescription>
@@ -504,15 +746,88 @@ export default function ProductPage() {
                   <Textarea
                     placeholder="اكتب تعليقك هنا..."
                     className="min-h-[100px]"
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
                   />
                 </div>
-                <Button className="w-full sm:w-auto">إرسال التقييم</Button>
+                <Button
+                  className="w-full sm:w-auto"
+                  onClick={handleSubmitReview}
+                  disabled={isSubmittingReview || !currentUser}
+                >
+                  {isSubmittingReview ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      جاري الإرسال...
+                    </>
+                  ) : (
+                    "إرسال التقييم"
+                  )}
+                </Button>
+                {!currentUser && (
+                  <p className="text-sm text-red-500 mt-2">
+                    يجب تسجيل الدخول لإضافة تقييم
+                  </p>
+                )}
               </CardContent>
             </Card>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {reviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
+              {reviews.length > 0 ? (
+                reviews.map((review) => (
+                  <ReviewCard
+                    key={review._id}
+                    review={review}
+                    isCurrentUserReview={currentUser?._id === review.userId}
+                    onDelete={async (id) => {
+                      try {
+                        await deleteReviewMutation({
+                          reviewId: id as Id<"reviews">,
+                        });
+                        toast.success("تم حذف التقييم بنجاح");
+                      } catch {
+                        toast.error("حدث خطأ أثناء حذف التقييم");
+                      }
+                    }}
+                    onEdit={async (id, newRating, newComment) => {
+                      try {
+                        await addReviewMutation({
+                          productId: productId as Id<"products">,
+                          rating: newRating,
+                          comment: newComment,
+                        });
+                        toast.success("تم تحديث التقييم بنجاح");
+                      } catch {
+                        toast.error("حدث خطأ أثناء تحديث التقييم");
+                      }
+                    }}
+                  />
+                ))
+              ) : (
+                <div className="col-span-2 flex flex-col items-center justify-center py-10 px-4 sm:py-16 bg-muted/10 rounded-lg border border-dashed border-muted-foreground/20">
+                  <div className="bg-primary/5 p-4 rounded-full mb-4">
+                    <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-primary/60" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-medium mb-2">
+                    لا توجد تقييمات
+                  </h3>
+                  <p className="text-muted-foreground text-sm sm:text-base text-center max-w-md">
+                    لا توجد تقييمات لهذا المنتج حتى الآن. كن أول من يشارك رأيه
+                    ويساعد الآخرين في اتخاذ قرار الشراء.
+                  </p>
+                  <Button
+                    variant="outline"
+                    className="mt-6 gap-2 group hover:bg-primary hover:text-white transition-all duration-300"
+                    onClick={() =>
+                      document
+                        .getElementById("add-review-section")
+                        ?.scrollIntoView({ behavior: "smooth" })
+                    }
+                  >
+                    <StarIcon className="h-4 w-4 group-hover:fill-white transition-all duration-300" />
+                    أضف تقييمك الآن
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
