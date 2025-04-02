@@ -123,4 +123,40 @@ export default defineSchema({
     .index("by_product", ["productId"])
     .index("by_user", ["userId"])
     .index("by_created", ["createdAt"]),
+
+  // Pages management
+  pages: defineTable({
+    name: v.string(),
+    title: v.string(),
+    slug: v.string(),
+    order: v.number(),
+    isVisible: v.boolean(),
+  }).index("by_order", ["order"]),
+
+  // About page content
+  aboutPage: defineTable({
+    title: v.string(),
+    description: v.string(),
+    mainImage: v.optional(v.id("_storage")),
+    companyHistory: v.string(),
+    companyHistoryImage: v.optional(v.id("_storage")),
+    vision: v.string(),
+    mission: v.string(),
+    values: v.string(),
+    teamTitle: v.string(),
+    teamDescription: v.string(),
+    teamMembers: v.array(
+      v.object({
+        name: v.string(),
+        position: v.string(),
+        bio: v.string(),
+        image: v.optional(v.id("_storage")),
+        order: v.number(),
+      })
+    ),
+    contactPhone: v.string(),
+    contactEmail: v.string(),
+    contactAddress: v.string(),
+    isVisible: v.boolean(),
+  }),
 });

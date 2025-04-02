@@ -10,6 +10,7 @@ import {
   ShoppingCartIcon,
   LayoutDashboardIcon,
   UsersIcon as CustomersIcon,
+  FileTextIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -30,10 +31,20 @@ import { api } from "@/convex/_generated/api";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
-  const [isOpen, setIsOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    sections: false,
+    pages: false,
+  });
   const subscribers = useQuery(api.newsletter.getUnreadSubscribers);
 
-  const mainSections = [
+  // Define section types to include badge property
+  type SectionWithBadge = {
+    label: string;
+    href: string;
+    badge?: number;
+  };
+
+  const mainSections: SectionWithBadge[] = [
     {
       label: "الهيدر",
       href: "/dashboard/sections/header",
@@ -85,6 +96,15 @@ export function DashboardSidebar() {
     },
   ];
 
+  // Define pages sections
+  const pagesSections: SectionWithBadge[] = [
+    {
+      label: "من نحن",
+      href: "/dashboard/pages/about",
+    },
+    // Add more pages as needed
+  ];
+
   const routes = [
     {
       icon: HomeIcon,
@@ -96,7 +116,15 @@ export function DashboardSidebar() {
       icon: LayoutIcon,
       label: "الأقسام",
       tooltip: "الأقسام",
+      id: "sections",
       sections: mainSections,
+    },
+    {
+      icon: FileTextIcon,
+      label: "الصفحات",
+      tooltip: "الصفحات",
+      id: "pages",
+      sections: pagesSections,
     },
     {
       icon: PackageIcon,
@@ -147,17 +175,26 @@ export function DashboardSidebar() {
                     isActive={route.sections.some(
                       (section) => pathname === section.href
                     )}
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={() => {
+                      if (route.id) {
+                        setOpenSections((prev) => ({
+                          ...prev,
+                          [route.id]: !prev[route.id],
+                        }));
+                      }
+                    }}
                   >
                     <route.icon className="ml-1 h-5 w-5" />
                     <span>{route.label}</span>
                     <ChevronDownIcon
                       className={`h-4 w-4 mr-auto transition-transform ${
-                        isOpen ? "transform rotate-180" : ""
+                        route.id && openSections[route.id]
+                          ? "transform rotate-180"
+                          : ""
                       }`}
                     />
                   </SidebarMenuButton>
-                  {isOpen && (
+                  {route.id && openSections[route.id] && (
                     <SidebarMenuSub>
                       {route.sections.map((section) => (
                         <SidebarMenuSubItem key={section.href}>
