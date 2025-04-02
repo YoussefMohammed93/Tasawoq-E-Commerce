@@ -24,6 +24,7 @@ import type * as newsletter from "../newsletter.js";
 import type * as partners from "../partners.js";
 import type * as products from "../products.js";
 import type * as reviews from "../reviews.js";
+import type * as terms from "../terms.js";
 import type * as users from "../users.js";
 
 /**
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   partners: typeof partners;
   products: typeof products;
   reviews: typeof reviews;
+  terms: typeof terms;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

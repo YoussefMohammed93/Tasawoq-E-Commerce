@@ -124,7 +124,6 @@ export default defineSchema({
     .index("by_user", ["userId"])
     .index("by_created", ["createdAt"]),
 
-  // Pages management
   pages: defineTable({
     name: v.string(),
     title: v.string(),
@@ -133,7 +132,6 @@ export default defineSchema({
     isVisible: v.boolean(),
   }).index("by_order", ["order"]),
 
-  // About page content
   aboutPage: defineTable({
     title: v.string(),
     description: v.string(),
@@ -158,5 +156,28 @@ export default defineSchema({
     contactEmail: v.string(),
     contactAddress: v.string(),
     isVisible: v.boolean(),
+  }),
+
+  terms: defineTable({
+    title: v.string(),
+    description: v.string(),
+    introduction: v.string(),
+    accountTerms: v.string(),
+    paymentTerms: v.string(),
+    shippingPolicy: v.string(),
+    returnPolicy: v.string(),
+    lastUpdated: v.string(),
+    introductionVisible: v.boolean(),
+    accountTermsVisible: v.boolean(),
+    paymentTermsVisible: v.boolean(),
+    shippingPolicyVisible: v.boolean(),
+    returnPolicyVisible: v.boolean(),
+    contactInfoVisible: v.boolean(),
+    isVisible: v.boolean(),
+    contactInfo: v.object({
+      email: v.string(),
+      phone: v.string(),
+      address: v.string(),
+    }),
   }),
 });

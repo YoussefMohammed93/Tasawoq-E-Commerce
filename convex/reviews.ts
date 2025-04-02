@@ -12,7 +12,6 @@ export const getProductReviews = query({
       .order("desc")
       .collect();
 
-    // Get user information for each review
     const reviewsWithUserInfo = await Promise.all(
       reviews.map(async (review) => {
         const user = await ctx.db.get(review.userId);
@@ -41,7 +40,6 @@ export const getUserReviews = query({
       .order("desc")
       .collect();
 
-    // Get product information for each review
     const reviewsWithProductInfo = await Promise.all(
       reviews.map(async (review) => {
         const product = await ctx.db.get(review.productId);
@@ -68,7 +66,6 @@ export const getAllReviews = query({
       .order("desc")
       .collect();
 
-    // Get user and product information for each review
     const reviewsWithInfo = await Promise.all(
       reviews.map(async (review) => {
         const user = await ctx.db.get(review.userId);
@@ -102,7 +99,6 @@ export const addReview = mutation({
   handler: async (ctx, args) => {
     const user = await getCurrentUserOrThrow(ctx);
 
-    // Check if user has already reviewed this product
     const existingReview = await ctx.db
       .query("reviews")
       .withIndex("by_product", (q) => q.eq("productId", args.productId))
@@ -110,7 +106,6 @@ export const addReview = mutation({
       .first();
 
     if (existingReview) {
-      // Update existing review
       return await ctx.db.patch(existingReview._id, {
         rating: args.rating,
         comment: args.comment,
@@ -118,7 +113,6 @@ export const addReview = mutation({
       });
     }
 
-    // Create new review
     return await ctx.db.insert("reviews", {
       userId: user._id,
       productId: args.productId,
@@ -142,7 +136,6 @@ export const deleteReview = mutation({
       throw new Error("Review not found");
     }
 
-    // Only allow users to delete their own reviews (or implement admin check here)
     if (review.userId !== user._id) {
       throw new Error("Unauthorized to delete this review");
     }

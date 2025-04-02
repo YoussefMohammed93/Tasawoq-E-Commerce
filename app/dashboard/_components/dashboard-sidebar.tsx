@@ -102,6 +102,10 @@ export function DashboardSidebar() {
       label: "من نحن",
       href: "/dashboard/pages/about",
     },
+    {
+      label: "الشروط والأحكام",
+      href: "/dashboard/pages/terms",
+    },
     // Add more pages as needed
   ];
 
