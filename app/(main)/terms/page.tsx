@@ -13,8 +13,11 @@ import {
 } from "lucide-react";
 import { Header } from "@/components/ui/header";
 import { Footer } from "@/components/ui/footer";
+import TermsLoading from "./loading";
 
 export default function TermsPage() {
+  const termsData = useQuery(api.terms.get);
+
   const defaultData = {
     title: "الشروط والأحكام",
     description:
@@ -37,7 +40,6 @@ export default function TermsPage() {
     },
   };
 
-  const termsData = useQuery(api.terms.get);
   const data = {
     ...defaultData,
     ...termsData,
@@ -101,12 +103,17 @@ export default function TermsPage() {
     );
   }
 
+  // Show loading skeleton while data is being fetched
+  if (termsData === undefined) {
+    return <TermsLoading />;
+  }
+
   return (
     <>
       <Header />
-      <main className="pt-24 pb-16">
+      <main className="pt-16 pb-8">
         {/* Hero Section */}
-        <section className="bg-muted/30 py-12 mb-12">
+        <section className="bg-muted py-12 mb-12">
           <div className="max-w-7xl mx-auto px-5">
             <div className="text-center max-w-3xl mx-auto">
               <h1 className="text-4xl font-bold mb-6">{data.title}</h1>

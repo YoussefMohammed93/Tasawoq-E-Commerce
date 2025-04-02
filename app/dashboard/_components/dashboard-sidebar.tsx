@@ -11,6 +11,7 @@ import {
   LayoutDashboardIcon,
   UsersIcon as CustomersIcon,
   FileTextIcon,
+  PhoneIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -36,6 +37,7 @@ export function DashboardSidebar() {
     pages: false,
   });
   const subscribers = useQuery(api.newsletter.getUnreadSubscribers);
+  const newContactSubmissions = useQuery(api.contact.getNewSubmissionsCount);
 
   // Define section types to include badge property
   type SectionWithBadge = {
@@ -106,7 +108,10 @@ export function DashboardSidebar() {
       label: "الشروط والأحكام",
       href: "/dashboard/pages/terms",
     },
-    // Add more pages as needed
+    {
+      label: "تواصل معنا",
+      href: "/dashboard/pages/contact",
+    },
   ];
 
   const routes = [
@@ -153,6 +158,13 @@ export function DashboardSidebar() {
       label: "التقييمات",
       tooltip: "التقييمات",
       href: "/dashboard/reviews",
+    },
+    {
+      icon: PhoneIcon,
+      label: "رسائل التواصل",
+      tooltip: "رسائل التواصل",
+      href: "/dashboard/pages/contact/submissions",
+      badge: newContactSubmissions || 0,
     },
     {
       icon: SettingsIcon,
@@ -232,9 +244,17 @@ export function DashboardSidebar() {
                   className="cursor-pointer"
                   isActive={pathname === route.href}
                 >
-                  <Link href={route.href} className="flex w-full items-center">
+                  <Link
+                    href={route.href}
+                    className="flex w-full items-center relative"
+                  >
                     <route.icon className="ml-1 h-5 w-5" />
                     <span>{route.label}</span>
+                    {typeof route.badge === "number" && route.badge > 0 && (
+                      <span className="absolute left-2 bg-primary text-primary-foreground rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                        {route.badge}
+                      </span>
+                    )}
                   </Link>
                 </SidebarMenuButton>
               )}

@@ -180,4 +180,35 @@ export default defineSchema({
       address: v.string(),
     }),
   }),
+
+  contactPage: defineTable({
+    title: v.string(),
+    description: v.string(),
+    phone: v.string(),
+    email: v.string(),
+    address: v.string(),
+    mapLocation: v.object({
+      lat: v.number(),
+      lng: v.number(),
+    }),
+    workingHours: v.string(),
+    formTitle: v.string(),
+    formDescription: v.string(),
+    mapTitle: v.string(),
+    mapDescription: v.string(),
+  }),
+
+  contactSubmissions: defineTable({
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    subject: v.optional(v.string()),
+    message: v.string(),
+    status: v.string(), // 'new', 'read', 'replied', 'archived'
+    createdAt: v.string(),
+    updatedAt: v.optional(v.string()),
+    notes: v.optional(v.string()),
+  })
+    .index("by_status", ["status"])
+    .index("by_created", ["createdAt"]),
 });

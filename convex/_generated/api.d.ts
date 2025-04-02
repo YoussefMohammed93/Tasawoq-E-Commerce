@@ -15,6 +15,7 @@ import type {
 } from "convex/server";
 import type * as about from "../about.js";
 import type * as categories from "../categories.js";
+import type * as contact from "../contact.js";
 import type * as features from "../features.js";
 import type * as files from "../files.js";
 import type * as header from "../header.js";
@@ -38,6 +39,7 @@ import type * as users from "../users.js";
 declare const fullApi: ApiFromModules<{
   about: typeof about;
   categories: typeof categories;
+  contact: typeof contact;
   features: typeof features;
   files: typeof files;
   header: typeof header;
