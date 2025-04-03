@@ -55,8 +55,10 @@ import {
   Save,
   Edit,
   Loader2,
+  Search,
 } from "lucide-react";
 import { Heading } from "@/components/ui/heading";
+import { Input } from "@/components/ui/input";
 
 type Submission = {
   _id: Id<"contactSubmissions">;
@@ -100,6 +102,7 @@ export default function ContactSubmissionsPage() {
   const deleteSubmission = useMutation(api.contact.deleteContactSubmission);
 
   const [activeTab, setActiveTab] = useState("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubmission, setSelectedSubmission] =
     useState<Submission | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -107,8 +110,13 @@ export default function ContactSubmissionsPage() {
 
   const getFilteredSubmissions = (tabValue: string) => {
     return submissions?.filter((submission) => {
-      if (tabValue === "all") return true;
-      return submission.status === tabValue;
+      const matchesSearch =
+        submission.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        submission.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        submission.message.toLowerCase().includes(searchQuery.toLowerCase());
+
+      if (tabValue === "all") return matchesSearch;
+      return matchesSearch && submission.status === tabValue;
     });
   };
 
@@ -172,6 +180,18 @@ export default function ContactSubmissionsPage() {
             title="رسائل التواصل"
             description="إدارة ومتابعة رسائل التواصل الواردة من العملاء."
           />
+        </div>
+
+        <div className="mb-6">
+          <div className="relative">
+            <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="البحث في الرسائل..."
+              className="pr-9 w-full max-w-sm"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
         <Tabs

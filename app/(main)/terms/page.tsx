@@ -91,11 +91,12 @@ export default function TermsPage() {
       <>
         <Header />
         <main className="pt-24 pb-16 flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">
-              هذه الصفحة غير متاحة حال
-            </h1>
-            <p className="text-muted-foreground">يرجى العودة لاحق</p>
+          <div className="text-center space-y-4">
+            <div className="bg-muted mx-auto w-16 h-16 rounded-full flex items-center justify-center">
+              <FileText className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h1 className="text-2xl font-bold">هذه الصفحة غير متاحة حالياً</h1>
+            <p className="text-muted-foreground">يرجى العودة لاحقاً.</p>
           </div>
         </main>
         <Footer />

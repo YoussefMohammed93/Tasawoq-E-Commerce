@@ -77,6 +77,34 @@ export default function TermsPage() {
   const termsData = useQuery(api.terms.get);
   const saveTerms = useMutation(api.terms.update);
 
+  // Add this function after the state declarations
+  const hasChanges = () => {
+    if (!termsData) return false;
+
+    return (
+      formData.title !== (termsData.title || "") ||
+      formData.description !== (termsData.description || "") ||
+      formData.introduction !== (termsData.introduction || "") ||
+      formData.accountTerms !== (termsData.accountTerms || "") ||
+      formData.accountTermsVisible !==
+        (termsData.accountTermsVisible ?? true) ||
+      formData.paymentTerms !== (termsData.paymentTerms || "") ||
+      formData.paymentTermsVisible !==
+        (termsData.paymentTermsVisible ?? true) ||
+      formData.shippingPolicy !== (termsData.shippingPolicy || "") ||
+      formData.shippingPolicyVisible !==
+        (termsData.shippingPolicyVisible ?? true) ||
+      formData.returnPolicy !== (termsData.returnPolicy || "") ||
+      formData.returnPolicyVisible !==
+        (termsData.returnPolicyVisible ?? true) ||
+      formData.contactInfo.email !== (termsData.contactInfo?.email || "") ||
+      formData.contactInfo.phone !== (termsData.contactInfo?.phone || "") ||
+      formData.contactInfo.address !== (termsData.contactInfo?.address || "") ||
+      formData.contactInfoVisible !== (termsData.contactInfoVisible ?? true) ||
+      formData.isVisible !== (termsData.isVisible ?? true)
+    );
+  };
+
   // Update form data when terms data is fetched
   useEffect(() => {
     if (termsData) {
@@ -202,7 +230,6 @@ export default function TermsPage() {
                 variant={formData.isVisible ? "default" : "outline"}
                 onClick={() => handleVisibilityChange(!formData.isVisible)}
                 className="w-full sm:w-auto gap-2"
-                size="sm"
               >
                 {formData.isVisible ? (
                   <>
@@ -217,7 +244,11 @@ export default function TermsPage() {
                 )}
               </Button>
             </div>
-            <Button onClick={handleSubmit} disabled={loading} className="gap-2">
+            <Button
+              onClick={handleSubmit}
+              disabled={loading || !hasChanges()}
+              className="gap-2"
+            >
               {loading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (

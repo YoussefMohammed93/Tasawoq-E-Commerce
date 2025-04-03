@@ -56,9 +56,11 @@ export const saveAboutPage = mutation({
     mainImage: v.optional(v.id("_storage")),
     companyHistory: v.string(),
     companyHistoryImage: v.optional(v.id("_storage")),
+    companyHistoryVisible: v.optional(v.boolean()),
     vision: v.string(),
     mission: v.string(),
     values: v.string(),
+    visionMissionValuesVisible: v.optional(v.boolean()),
     teamTitle: v.string(),
     teamDescription: v.string(),
     teamMembers: v.optional(
@@ -72,9 +74,11 @@ export const saveAboutPage = mutation({
         })
       )
     ),
+    teamVisible: v.optional(v.boolean()),
     contactPhone: v.string(),
     contactEmail: v.string(),
     contactAddress: v.string(),
+    contactInfoVisible: v.optional(v.boolean()),
     isVisible: v.boolean(),
   },
   handler: async (ctx, args) => {

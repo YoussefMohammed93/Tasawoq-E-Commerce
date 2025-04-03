@@ -24,6 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Id } from "@/convex/_generated/dataModel";
 import { TeamMembers } from "./team-members";
+import { Separator } from "@/components/ui/separator";
 
 export default function AboutPage() {
   // We need to track activeTab for the Tabs component
@@ -39,14 +40,18 @@ export default function AboutPage() {
     mainImage: null as Id<"_storage"> | null,
     companyHistory: "",
     companyHistoryImage: null as Id<"_storage"> | null,
+    companyHistoryVisible: true,
     vision: "",
     mission: "",
     values: "",
+    visionMissionValuesVisible: true,
     teamTitle: "",
     teamDescription: "",
+    teamVisible: true,
     contactPhone: "",
     contactEmail: "",
     contactAddress: "",
+    contactInfoVisible: true,
     isVisible: true,
   });
 
@@ -65,14 +70,19 @@ export default function AboutPage() {
         mainImage: aboutPageData.mainImage || null,
         companyHistory: aboutPageData.companyHistory || "",
         companyHistoryImage: aboutPageData.companyHistoryImage || null,
+        companyHistoryVisible: aboutPageData.companyHistoryVisible ?? true,
         vision: aboutPageData.vision || "",
         mission: aboutPageData.mission || "",
         values: aboutPageData.values || "",
+        visionMissionValuesVisible:
+          aboutPageData.visionMissionValuesVisible ?? true,
         teamTitle: aboutPageData.teamTitle || "",
         teamDescription: aboutPageData.teamDescription || "",
+        teamVisible: aboutPageData.teamVisible ?? true,
         contactPhone: aboutPageData.contactPhone || "",
         contactEmail: aboutPageData.contactEmail || "",
         contactAddress: aboutPageData.contactAddress || "",
+        contactInfoVisible: aboutPageData.contactInfoVisible ?? true,
         isVisible: aboutPageData.isVisible ?? true,
       });
     }
@@ -97,14 +107,21 @@ export default function AboutPage() {
       formData.title !== (aboutPageData.title || "") ||
       formData.description !== (aboutPageData.description || "") ||
       formData.companyHistory !== (aboutPageData.companyHistory || "") ||
+      formData.companyHistoryVisible !==
+        (aboutPageData.companyHistoryVisible ?? true) ||
       formData.vision !== (aboutPageData.vision || "") ||
       formData.mission !== (aboutPageData.mission || "") ||
       formData.values !== (aboutPageData.values || "") ||
+      formData.visionMissionValuesVisible !==
+        (aboutPageData.visionMissionValuesVisible ?? true) ||
       formData.teamTitle !== (aboutPageData.teamTitle || "") ||
       formData.teamDescription !== (aboutPageData.teamDescription || "") ||
+      formData.teamVisible !== (aboutPageData.teamVisible ?? true) ||
       formData.contactPhone !== (aboutPageData.contactPhone || "") ||
       formData.contactEmail !== (aboutPageData.contactEmail || "") ||
       formData.contactAddress !== (aboutPageData.contactAddress || "") ||
+      formData.contactInfoVisible !==
+        (aboutPageData.contactInfoVisible ?? true) ||
       formData.isVisible !== (aboutPageData.isVisible ?? true) ||
       selectedMainImage !== null
     );
@@ -141,14 +158,18 @@ export default function AboutPage() {
         mainImage: mainImageId || undefined,
         companyHistory: formData.companyHistory,
         companyHistoryImage: formData.companyHistoryImage || undefined,
+        companyHistoryVisible: formData.companyHistoryVisible,
         vision: formData.vision,
         mission: formData.mission,
         values: formData.values,
+        visionMissionValuesVisible: formData.visionMissionValuesVisible,
         teamTitle: formData.teamTitle,
         teamDescription: formData.teamDescription,
+        teamVisible: formData.teamVisible,
         contactPhone: formData.contactPhone,
         contactEmail: formData.contactEmail,
         contactAddress: formData.contactAddress,
+        contactInfoVisible: formData.contactInfoVisible,
         isVisible: formData.isVisible,
         // Don't send teamMembers when updating other fields
         // This prevents issues with imageUrl field
@@ -180,11 +201,34 @@ export default function AboutPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <div className="pt-14 mb-8">
+      <div className="pt-14 mb-8 flex flex-col sm:flex-row justify-between items-start gap-4">
         <Heading
           title="صفحة من نحن"
           description="قم بتخصيص محتوى صفحة من نحن في متجرك الإلكتروني."
         />
+        <Button
+          variant={formData.isVisible ? "default" : "outline"}
+          onClick={() =>
+            setFormData((prev) => ({
+              ...prev,
+              isVisible: !prev.isVisible,
+            }))
+          }
+          className="gap-2"
+          size="sm"
+        >
+          {formData.isVisible ? (
+            <>
+              <EyeIcon className="h-4 w-4" />
+              ظاهر
+            </>
+          ) : (
+            <>
+              <EyeOffIcon className="h-4 w-4" />
+              مخفي
+            </>
+          )}
+        </Button>
       </div>
 
       <Tabs
@@ -223,29 +267,6 @@ export default function AboutPage() {
                     قم بتعديل العنوان والوصف الرئيسي لصفحة من نحن
                   </p>
                 </div>
-                <Button
-                  variant={formData.isVisible ? "default" : "outline"}
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      isVisible: !prev.isVisible,
-                    }))
-                  }
-                  className="w-full sm:w-auto gap-2"
-                  size="sm"
-                >
-                  {formData.isVisible ? (
-                    <>
-                      <EyeIcon className="h-4 w-4" />
-                      ظاهر
-                    </>
-                  ) : (
-                    <>
-                      <EyeOffIcon className="h-4 w-4" />
-                      مخفي
-                    </>
-                  )}
-                </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -304,10 +325,14 @@ export default function AboutPage() {
         <TabsContent value="company">
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-semibold">معلومات الشركة</h3>
-              <p className="text-sm text-muted-foreground">
-                قم بتعديل معلومات الشركة والرؤية والرسالة والقيم
-              </p>
+              <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">معلومات الشركة</h3>
+                  <p className="text-sm text-muted-foreground">
+                    قم بتعديل معلومات الشركة والرؤية والرسالة والقيم
+                  </p>
+                </div>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -321,8 +346,42 @@ export default function AboutPage() {
                 />
               </div>
 
+              <Separator className="mb-6 mt-8" />
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">الرؤية</label>
+                <div className="flex justify-between items-center">
+                  <label className="text-sm font-medium">
+                    الرؤية والرسالة والقيم
+                  </label>
+                  <Button
+                    variant={
+                      formData.visionMissionValuesVisible
+                        ? "default"
+                        : "outline"
+                    }
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        visionMissionValuesVisible:
+                          !prev.visionMissionValuesVisible,
+                      }))
+                    }
+                    className="gap-2"
+                    size="sm"
+                  >
+                    {formData.visionMissionValuesVisible ? (
+                      <>
+                        <EyeIcon className="h-4 w-4" />
+                        ظاهر
+                      </>
+                    ) : (
+                      <>
+                        <EyeOffIcon className="h-4 w-4" />
+                        مخفي
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <Textarea
                   name="vision"
                   value={formData.vision}
@@ -361,10 +420,37 @@ export default function AboutPage() {
         <TabsContent value="team">
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-semibold">فريق العمل</h3>
-              <p className="text-sm text-muted-foreground">
-                قم بإدارة معلومات فريق العمل
-              </p>
+              <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">فريق العمل</h3>
+                  <p className="text-sm text-muted-foreground">
+                    قم بإدارة معلومات فريق العمل
+                  </p>
+                </div>
+                <Button
+                  variant={formData.teamVisible ? "default" : "outline"}
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      teamVisible: !prev.teamVisible,
+                    }))
+                  }
+                  className="w-full sm:w-auto gap-2"
+                  size="sm"
+                >
+                  {formData.teamVisible ? (
+                    <>
+                      <EyeIcon className="h-4 w-4" />
+                      ظاهر
+                    </>
+                  ) : (
+                    <>
+                      <EyeOffIcon className="h-4 w-4" />
+                      مخفي
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
@@ -404,10 +490,37 @@ export default function AboutPage() {
         <TabsContent value="contact">
           <Card>
             <CardHeader>
-              <h3 className="text-lg font-semibold">معلومات الاتصال</h3>
-              <p className="text-sm text-muted-foreground">
-                قم بتعديل معلومات الاتصال التي ستظهر في صفحة من نحن
-              </p>
+              <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">معلومات الاتصال</h3>
+                  <p className="text-sm text-muted-foreground">
+                    قم بتعديل معلومات الاتصال التي ستظهر في صفحة من نحن
+                  </p>
+                </div>
+                <Button
+                  variant={formData.contactInfoVisible ? "default" : "outline"}
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      contactInfoVisible: !prev.contactInfoVisible,
+                    }))
+                  }
+                  className="w-full sm:w-auto gap-2"
+                  size="sm"
+                >
+                  {formData.contactInfoVisible ? (
+                    <>
+                      <EyeIcon className="h-4 w-4" />
+                      ظاهر
+                    </>
+                  ) : (
+                    <>
+                      <EyeOffIcon className="h-4 w-4" />
+                      مخفي
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-2">
