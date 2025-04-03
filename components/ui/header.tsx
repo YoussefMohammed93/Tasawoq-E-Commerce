@@ -16,6 +16,7 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, Heart, Search, Menu } from "lucide-react";
+import { SearchDialog } from "@/components/search-dialog";
 
 const HeaderLinkSkeleton = ({ isMobile = false }: { isMobile?: boolean }) => {
   return isMobile ? (
@@ -27,6 +28,7 @@ const HeaderLinkSkeleton = ({ isMobile = false }: { isMobile?: boolean }) => {
 
 export function Header() {
   const [isOpen, setIsOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   const pathname = usePathname();
   const headerLinks = useQuery(api.header.getHeaderLinks);
@@ -79,19 +81,23 @@ export function Header() {
               variant="ghost"
               size="icon"
               className={cn(
-                "hidden md:flex transition-colors",
-                pathname === "/search" && "text-primary bg-primary/10"
+                "hidden md:flex transition-colors hover:bg-primary/10",
+                pathname === "/search" &&
+                  "text-primary bg-primary/10 hover:bg-primary/10"
               )}
+              onClick={() => setSearchOpen(true)}
             >
               <Search className="h-5 w-5" />
               <span className="sr-only">بحث</span>
             </Button>
+            <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
             <Button
               variant="ghost"
               size="icon"
               className={cn(
-                "hidden md:flex transition-colors",
-                pathname === "/wishlist" && "text-primary bg-primary/10"
+                "hidden md:flex transition-colors hover:bg-primary/10",
+                pathname === "/wishlist" &&
+                  "text-primary bg-primary/10 hover:bg-primary/10"
               )}
               asChild
             >
@@ -104,8 +110,9 @@ export function Header() {
               variant="ghost"
               size="icon"
               className={cn(
-                "transition-colors",
-                pathname === "/cart" && "text-primary bg-primary/10"
+                "transition-colors hover:bg-primary/10",
+                pathname === "/cart" &&
+                  "text-primary bg-primary/10 hover:bg-primary/10"
               )}
               asChild
             >
@@ -118,7 +125,7 @@ export function Header() {
               </Link>
             </Button>
 
-            <UserButton afterSignOutUrl="/" />
+            <UserButton />
 
             <Button
               variant="ghost"
@@ -188,12 +195,13 @@ export function Header() {
                       pathname === "/search" &&
                         "bg-primary/10 text-primary border-primary"
                     )}
-                    asChild
+                    onClick={() => {
+                      setIsOpen(false);
+                      setSearchOpen(true);
+                    }}
                   >
-                    <Link href="/search" onClick={() => setIsOpen(false)}>
-                      <Search className="h-4 w-4" />
-                      بحث
-                    </Link>
+                    <Search className="h-4 w-4" />
+                    بحث
                   </Button>
                 </div>
               </div>
