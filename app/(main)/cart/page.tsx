@@ -18,7 +18,13 @@ import {
   Plus,
   Minus,
   ShoppingBag,
+  Ticket,
+  X,
+  Loader2,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
 import {
   AlertDialog,
@@ -105,8 +111,18 @@ export default function CartPage() {
     updateCartItemQuantity,
     clearCart,
     cartTotal,
+    applyCoupon,
+    removeCoupon,
+    coupon,
+    isApplyingCoupon,
+    discountAmount,
   } = useCart();
+  const validateCouponDirectly = useMutation(api.coupons.validateCoupon);
   const [clearCartDialogOpen, setClearCartDialogOpen] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [status, setStatus] = useState<"idle" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const shippingSettings = useQuery(api.settings.getShippingSettings);
 
   // Handle quantity change
   const handleQuantityChange = (
@@ -122,8 +138,62 @@ export default function CartPage() {
 
   // Calculate subtotal, shipping, and total
   const subtotal = cartTotal;
-  const shipping = subtotal > 0 ? 15 : 0; // Example shipping cost
+  const calculateShipping = (subtotal: number) => {
+    if (!shippingSettings) return 15; // Default fallback
+
+    const { shippingCost, freeShippingThreshold } = shippingSettings;
+
+    if (freeShippingThreshold && subtotal >= freeShippingThreshold) {
+      return 0;
+    }
+    return shippingCost;
+  };
+
+  const shipping = calculateShipping(subtotal);
   const total = subtotal + shipping;
+
+  // Handle coupon application
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+
+    try {
+      const success = await applyCoupon(couponCode.trim().toUpperCase());
+      if (!success) {
+        setStatus("error");
+        // Check if the coupon exists but has reached its usage limit
+        const coupon = await validateCouponDirectly({
+          code: couponCode.trim().toUpperCase(),
+        });
+        if (
+          coupon?.valid === false &&
+          coupon?.message === "Coupon usage limit reached"
+        ) {
+          setErrorMessage("تم الوصول إلى الحد الأقصى لاستخدام هذا الكوبون");
+        } else {
+          setErrorMessage("الكوبون غير صالح");
+        }
+        const couponInput = document.getElementById("coupon-input");
+        if (couponInput) {
+          (couponInput as HTMLInputElement).focus();
+        }
+      } else {
+        setStatus("idle");
+        setErrorMessage("");
+      }
+    } catch (error) {
+      console.error("Error applying coupon:", error);
+      setStatus("error");
+      setErrorMessage("حدث خطأ أثناء تطبيق الكوبون");
+    }
+  };
+
+  // Handle coupon removal
+  const handleRemoveCoupon = () => {
+    removeCoupon();
+    setCouponCode("");
+    setStatus("idle");
+    setErrorMessage("");
+  };
 
   return (
     <>
@@ -233,10 +303,10 @@ export default function CartPage() {
                                     </div>
                                   )}
                                   {item.selectedColor && (
-                                    <div className="text-sm bg-muted px-2 py-1 rounded flex items-center gap-1">
+                                    <div className="text-sm bg-muted px-2 py-1 rounded flex items-center gap-2">
                                       اللون: {item.selectedColor}
                                       <span
-                                        className="inline-block h-3 w-3 rounded-full border"
+                                        className="inline-block h-3 w-3 rounded-full"
                                         style={{
                                           backgroundColor:
                                             item.product.colors.find(
@@ -321,11 +391,108 @@ export default function CartPage() {
                           </span>
                           <span>{subtotal.toFixed(2)} ر.س</span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">الشحن</span>
-                          <span>{shipping.toFixed(2)} ر.س</span>
+                        <div className="flex flex-col gap-3">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">الشحن</span>
+                            <div>
+                              <span className="w-full flex justify-end">
+                                {shipping === 0 ? "مجاني" : `${shipping} ر.س`}
+                              </span>
+                            </div>
+                          </div>
+                          <span>
+                            {shippingSettings?.freeShippingThreshold &&
+                              subtotal <
+                                shippingSettings.freeShippingThreshold && (
+                                <div className="text-sm text-muted-foreground">
+                                  أضف{" "}
+                                  {(
+                                    shippingSettings.freeShippingThreshold -
+                                    subtotal
+                                  ).toFixed(2)}{" "}
+                                  ر.س للحصول على شحن مجاني
+                                </div>
+                              )}
+                          </span>
                         </div>
+                        {coupon && (
+                          <div className="flex justify-between text-green-600">
+                            <span className="flex items-center gap-1">
+                              <Ticket className="h-4 w-4" />
+                              خصم ({coupon.discountPercentage}%)
+                            </span>
+                            <span>- {discountAmount.toFixed(2)} ر.س</span>
+                          </div>
+                        )}
                       </div>
+
+                      {/* Coupon Input */}
+                      <div className="mt-4 mb-4">
+                        {coupon ? (
+                          <div className="flex items-center justify-between p-2 bg-green-50 dark:bg-green-950/30 rounded-md border border-green-200 dark:border-green-900">
+                            <div className="flex items-center gap-2">
+                              <Ticket className="h-4 w-4 text-green-600" />
+                              <span className="text-sm">
+                                تم تطبيق كوبون{" "}
+                                <span className="font-bold">{coupon.code}</span>{" "}
+                                ({coupon.discountPercentage}%)
+                              </span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 bg-green-50 hover:bg-green-50"
+                              onClick={handleRemoveCoupon}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex gap-2">
+                              <div className="relative flex-1">
+                                <Input
+                                  id="coupon-input"
+                                  placeholder="أدخل كود الكوبون"
+                                  value={couponCode}
+                                  onChange={(e) =>
+                                    setCouponCode(e.target.value)
+                                  }
+                                  className="text-right"
+                                />
+                              </div>
+                              <Button
+                                onClick={handleApplyCoupon}
+                                disabled={
+                                  isApplyingCoupon || !couponCode.trim()
+                                }
+                              >
+                                {isApplyingCoupon ? (
+                                  <span className="flex items-center gap-2">
+                                    جاري التطبيق...
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  </span>
+                                ) : (
+                                  "تطبيق"
+                                )}
+                              </Button>
+                            </div>
+                            {/* Error Message */}
+                            {status === "error" && (
+                              <div className="flex items-center gap-2 text-red-600 bg-red-50 dark:bg-red-950/30 p-2 rounded-md border border-red-200 dark:border-red-900">
+                                <X
+                                  className="h-4 w-4 cursor-pointer"
+                                  onClick={handleRemoveCoupon}
+                                />
+                                <span className="text-sm">
+                                  {errorMessage || "الكوبون غير صالح"}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       <Separator className="my-4" />
                       <div className="flex justify-between font-bold mb-4">
                         <span>الإجمالي</span>

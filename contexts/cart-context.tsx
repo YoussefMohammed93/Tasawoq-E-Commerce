@@ -42,6 +42,15 @@ type CartItem = {
   };
 };
 
+type CouponType = {
+  _id: Id<"coupons">;
+  name: string;
+  code: string;
+  discountPercentage: number;
+  usageLimit?: number;
+  usageCount?: number;
+};
+
 type CartContextType = {
   cartItems: CartItem[];
   isLoading: boolean;
@@ -61,6 +70,12 @@ type CartContextType = {
   cartCount: number;
   cartTotal: number;
   isProductInCart: (productId: Id<"products">) => boolean;
+  applyCoupon: (code: string) => Promise<boolean>;
+  removeCoupon: () => void;
+  coupon: CouponType | null;
+  isApplyingCoupon: boolean;
+  discountAmount: number;
+  finalTotal: number;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -68,6 +83,8 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const { isSignedIn } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
+  const [coupon, setCoupon] = useState<CouponType | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
   const pathname = usePathname();
 
   // Fetch cart data
@@ -91,6 +108,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, 0);
   }, [cartItems]);
 
+  // Calculate discount amount
+  const discountAmount = React.useMemo(() => {
+    if (!coupon) return 0;
+    return (cartTotal * coupon.discountPercentage) / 100;
+  }, [cartTotal, coupon]);
+
+  // Calculate final total after discount
+  const finalTotal = React.useMemo(() => {
+    return Math.max(0, cartTotal - discountAmount);
+  }, [cartTotal, discountAmount]);
+
   // Mutations
   const addToCartMutation = useMutation(api.cart.addToCart);
   const removeFromCartMutation = useMutation(api.cart.removeFromCart);
@@ -101,6 +129,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     api.cart.updateCartItemQuantity
   );
   const clearCartMutation = useMutation(api.cart.clearCart);
+  // We'll use a different approach for validating coupons
 
   useEffect(() => {
     // Only set loading to false when we have a definitive response from the server
@@ -221,6 +250,54 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // For direct API calls
+  const validateCouponDirectly = useMutation(api.coupons.validateCoupon);
+  const incrementCouponUsage = useMutation(api.coupons.incrementCouponUsage);
+
+  // Apply coupon
+  const applyCoupon = async (code: string): Promise<boolean> => {
+    if (!isSignedIn) {
+      return false;
+    }
+
+    setIsApplyingCoupon(true);
+    try {
+      const result = await validateCouponDirectly({ code });
+
+      if (result?.valid && result?.coupon) {
+        // Increment the coupon usage count
+        try {
+          await incrementCouponUsage({ couponId: result.coupon._id });
+        } catch (error) {
+          console.error("Failed to increment coupon usage:", error);
+          // If the coupon has reached its usage limit, return false
+          if (
+            error instanceof Error &&
+            error.message === "Coupon usage limit reached"
+          ) {
+            return false;
+          }
+          // For other errors, we'll still allow the coupon to be applied
+        }
+
+        setCoupon(result.coupon);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (error) {
+      console.error("Failed to apply coupon:", error);
+      return false;
+    } finally {
+      setIsApplyingCoupon(false);
+    }
+  };
+
+  // Remove coupon
+  const removeCoupon = () => {
+    setCoupon(null);
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -236,6 +313,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         cartCount,
         cartTotal,
         isProductInCart,
+        applyCoupon,
+        removeCoupon,
+        coupon,
+        isApplyingCoupon,
+        discountAmount,
+        finalTotal,
       }}
     >
       {children}

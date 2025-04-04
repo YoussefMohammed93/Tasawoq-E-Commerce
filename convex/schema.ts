@@ -235,4 +235,22 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_and_product", ["userId", "productId"]),
+
+  coupons: defineTable({
+    name: v.string(),
+    code: v.string(),
+    discountPercentage: v.number(),
+    isActive: v.boolean(),
+    usageLimit: v.optional(v.number()),
+    usageCount: v.optional(v.number()),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index("by_code", ["code"]),
+
+  settings: defineTable({
+    shippingCost: v.number(),
+    freeShippingThreshold: v.union(v.number(), v.null()),
+    notificationType: v.optional(v.string()),
+    // Add other settings fields as needed
+  }),
 });
