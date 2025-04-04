@@ -111,33 +111,50 @@ export function ProductCard({
             }}
           />
 
-          {product.discountPercentage > 0 && (
-            <Badge
-              variant="destructive"
-              className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 shadow-md"
-            >
-              خصم {product.discountPercentage}%
-            </Badge>
-          )}
+          {/* Badges Container */}
+          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 flex flex-col gap-2">
+            {/* Discount Badge */}
+            {product.discountPercentage > 0 && (
+              <Badge
+                variant="destructive"
+                className="w-full text-center"
+              >
+                خصم {product.discountPercentage}%
+              </Badge>
+            )}
 
-          {product.badges?.includes("جديد") && (
-            <Badge
-              variant="default"
-              className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 shadow-md bg-green-500 mt-8"
-            >
-              جديد
-            </Badge>
-          )}
+            {/* New Badge */}
+            {product.badges?.includes("جديد") && (
+              <Badge
+                variant="default"
+                className="w-full text-center bg-green-500"
+              >
+                جديد
+              </Badge>
+            )}
 
-          {product.badges?.includes("عرض خاص") && (
-            <Badge
-              variant="default"
-              className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 shadow-md bg-blue-500 mt-16"
-            >
-              عرض خاص
-            </Badge>
-          )}
+            {/* Special Offer Badge */}
+            {product.badges?.includes("عرض خاص") && (
+              <Badge
+                variant="default"
+                className="w-full text-center bg-blue-500"
+              >
+                عرض خاص
+              </Badge>
+            )}
 
+            {/* Best Seller Badge */}
+            {product.badges?.includes("الأكثر مبيعاً") && (
+              <Badge
+                variant="default"
+                className="w-full text-center bg-amber-500"
+              >
+                الأكثر مبيعاً
+              </Badge>
+            )}
+          </div>
+
+          {/* Wishlist Button */}
           {showWishlistButton && (
             <Button
               variant="outline"

@@ -1,64 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import "keen-slider/keen-slider.min.css";
-import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useKeenSlider } from "keen-slider/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { ShoppingCart, ChevronLeft, ChevronRight, Heart } from "lucide-react";
-
-const salesProducts = [
-  {
-    id: 1,
-    title: "حقيبة يد جلدية فاخرة",
-    image: "/t-shirt.png",
-    description: "حقيبة يد نسائية مصنوعة من الجلد الطبيعي الفاخر",
-    category: "حقائب نسائية",
-    price: 799.99,
-    discountPercentage: 25,
-  },
-  {
-    id: 2,
-    title: "ساعة ذكية رياضية",
-    image: "/t-shirt.png",
-    description: "ساعة ذكية متعددة الوظائف لتتبع النشاط الرياضي",
-    category: "الساعات الذكية",
-    price: 499.99,
-    discountPercentage: 30,
-  },
-  {
-    id: 3,
-    title: "نظارة شمسية كلاسيكية",
-    image: "/t-shirt.png",
-    description: "نظارة شمسية بتصميم كلاسيكي أنيق",
-    category: "نظارات",
-    price: 299.99,
-    discountPercentage: 20,
-  },
-  {
-    id: 4,
-    title: "عطر فاخر للرجال",
-    image: "/t-shirt.png",
-    description: "عطر رجالي فاخر برائحة منعشة",
-    category: "عطور",
-    price: 450.99,
-    discountPercentage: 15,
-  },
-  {
-    id: 5,
-    title: "عطر للرجال",
-    image: "/t-shirt.png",
-    description: "عطر رجالي فاخر برائحة منعشة",
-    category: "عطور",
-    price: 150.99,
-    discountPercentage: 5,
-  },
-];
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { ProductCard } from "@/components/ui/product-card";
+import { Card } from "@/components/ui/card";
 
 const SalesSkeletonItem = () => {
   return (
@@ -122,9 +74,12 @@ export const SalesSectionSkeleton = () => {
 };
 
 export const SalesSection = () => {
-  const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
+
+  // Fetch products from backend
+  const productsData = useQuery(api.products.getProducts);
+  const isLoading = productsData === undefined;
 
   const [sliderRef, instanceRef] = useKeenSlider({
     initial: 0,
@@ -152,14 +107,29 @@ export const SalesSection = () => {
     },
   });
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   if (isLoading) {
     return <SalesSectionSkeleton />;
   }
+
+  // Log the first product to see its structure
+  if (productsData && productsData.length > 0) {
+    console.log("First product:", productsData[0]);
+    console.log("First product image URL:", productsData[0].mainImageUrl);
+  }
+
+  // Filter products with discount or "خصم" or "sales" badge
+  const salesProducts = productsData
+    .filter(
+      (product) =>
+        product.discountPercentage > 0 ||
+        (product.badges &&
+          (product.badges.includes("خصم") || product.badges.includes("sales")))
+    )
+    .map((product) => ({
+      ...product,
+      mainImageUrl: product.mainImageUrl || "/hoodie.png",
+    }))
+    .slice(0, 10); // Limit to 10 products
 
   const totalSlides = instanceRef.current?.track.details.slides.length || 0;
   const perView =
@@ -178,13 +148,6 @@ export const SalesSection = () => {
     e.stopPropagation();
   };
 
-  const handleAddToWishlist = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
   return (
     <section className="py-12 bg-background">
       <div className="max-w-7xl mx-auto px-5">
@@ -194,115 +157,76 @@ export const SalesSection = () => {
             description="اكتشف أفضل العروض والتخفيضات على منتجاتنا المميزة"
           />
         </div>
-        <div className="relative">
-          <div ref={sliderRef} className="keen-slider">
-            {salesProducts.map((product) => {
-              const originalPrice =
-                product.price / (1 - product.discountPercentage / 100);
-              return (
-                <div className="keen-slider__slide" key={product.id}>
-                  <Link
-                    href={`/products/${product.id}`}
-                    className="block group"
-                  >
-                    <Card className="h-[400px] lg:h-[380px] flex flex-col p-0">
-                      <div className="relative w-full h-[250px] lg:h-[230px] overflow-hidden">
-                        <Image
-                          src={product.image}
-                          alt={product.title}
-                          fill
-                          className="object-contain rounded-t-xl p-4"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                        />
-                        <Badge
-                          variant="destructive"
-                          className="absolute top-3 right-3 z-10 shadow-md"
-                        >
-                          خصم {product.discountPercentage}%
-                        </Badge>
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="absolute top-3 left-3 z-10"
-                          onClick={handleAddToWishlist}
-                        >
-                          <Heart className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-col p-4 flex-1">
-                        <div className="flex items-center gap-2 justify-between">
-                          <Badge variant="outline">{product.category}</Badge>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-primary">
-                              {product.price} ر.س
-                            </span>
-                            <span className="text-sm text-muted-foreground line-through">
-                              {originalPrice.toFixed(2)} ر.س
-                            </span>
-                          </div>
-                        </div>
-                        <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
-                          {product.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm line-clamp-2 mb-2">
-                          {product.description}
-                        </p>
-                        <Button
-                          className="w-full gap-2 mt-auto"
-                          size="default"
-                          onClick={handleAddToCart}
-                        >
-                          <ShoppingCart className="h-5 w-5" />
-                          إضافة للسلة
-                        </Button>
-                      </div>
-                    </Card>
-                  </Link>
-                </div>
-              );
-            })}
+        {salesProducts.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-muted-foreground">لا توجد منتجات بخصومات حال</p>
           </div>
-          {loaded && instanceRef.current && (
-            <>
-              <Button
-                size="icon"
-                className={`absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-4 xl:-left-16 rounded-full flex ${
-                  isAtEnd ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                onClick={() => instanceRef.current?.next()}
-                disabled={isAtEnd}
-              >
-                <ChevronLeft className="size-5" />
-              </Button>
-              <Button
-                size="icon"
-                className={`absolute top-1/2 -translate-y-1/2 -right-2 sm:-right-4 xl:-right-16 rounded-full flex ${
-                  isAtStart ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                onClick={() => instanceRef.current?.prev()}
-                disabled={isAtStart}
-              >
-                <ChevronRight className="size-5" />
-              </Button>
-              <div className="flex flex-row justify-center gap-2 mt-4">
-                {[
-                  ...Array(instanceRef.current.track.details.slides.length),
-                ].map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      instanceRef.current?.moveToIdx(idx);
-                    }}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      currentSlide === idx ? "bg-primary w-4" : "bg-primary/20"
-                    }`}
-                    aria-label={`الانتقال إلى الشريحة ${idx + 1}`}
+        ) : (
+          <div className="relative">
+            <div ref={sliderRef} className="keen-slider">
+              {salesProducts.map((product) => (
+                <div className="keen-slider__slide" key={product._id}>
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    variant="compact"
+                    onAddToCart={(_, e) => handleAddToCart(e)}
                   />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+                </div>
+              ))}
+            </div>
+            {loaded && instanceRef.current && (
+              <>
+                <Button
+                  size="icon"
+                  className={`absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-4 xl:-left-16 rounded-full flex ${
+                    isAtEnd ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  onClick={() => instanceRef.current?.next()}
+                  disabled={isAtEnd}
+                >
+                  <ChevronLeft className="size-5" />
+                </Button>
+                <Button
+                  size="icon"
+                  className={`absolute top-1/2 -translate-y-1/2 -right-2 sm:-right-4 xl:-right-16 rounded-full flex ${
+                    isAtStart ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                  onClick={() => instanceRef.current?.prev()}
+                  disabled={isAtStart}
+                >
+                  <ChevronRight className="size-5" />
+                </Button>
+                {instanceRef.current &&
+                  instanceRef.current.track &&
+                  instanceRef.current.track.details &&
+                  instanceRef.current.track.details.slides &&
+                  instanceRef.current.track.details.slides.length > 0 && (
+                    <div className="flex flex-row justify-center gap-2 mt-4">
+                      {[
+                        ...Array(
+                          instanceRef.current.track.details.slides.length
+                        ),
+                      ].map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            instanceRef.current?.moveToIdx(idx);
+                          }}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            currentSlide === idx
+                              ? "bg-primary w-4"
+                              : "bg-primary/20"
+                          }`}
+                          aria-label={`الانتقال إلى الشريحة ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+              </>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

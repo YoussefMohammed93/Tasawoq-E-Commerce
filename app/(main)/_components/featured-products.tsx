@@ -114,8 +114,15 @@ export const ProductsSection = () => {
     return <ProductsSectionSkeleton />;
   }
 
-  // Get featured products (first 8 products)
-  const featuredProducts = productsData?.slice(0, 8) || [];
+  // Filter products with "عرض خاص" or "الأكثر مبيعاً" badge
+  const featuredProducts = productsData
+    .filter(
+      (product) =>
+        product.badges &&
+        (product.badges.includes("عرض خاص") ||
+          product.badges.includes("الأكثر مبيعاً"))
+    )
+    .slice(0, 10); // Limit to 10 products
 
   const totalSlides = instanceRef.current?.track.details.slides.length || 0;
   const perView =
@@ -144,65 +151,81 @@ export const ProductsSection = () => {
             description="اكتشف مجموعة متنوعة من المنتجات العصرية والأنيقة"
           />
         </div>
-        <div className="relative">
-          <div ref={sliderRef} className="keen-slider">
-            {featuredProducts.map((product) => (
-              <div className="keen-slider__slide" key={product._id}>
-                <ProductCard
-                  product={product}
-                  variant="compact"
-                  aspectRatio="custom"
-                  className="h-[400px] lg:h-[380px]"
-                  onAddToCart={(_, e) => handleAddToCart(e)}
-                />
-              </div>
-            ))}
+        {featuredProducts.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-muted-foreground">لا توجد منتجات مميزة حال</p>
           </div>
-          {loaded && instanceRef.current && (
-            <>
-              <Button
-                size="icon"
-                className="absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-4 xl:-left-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                  e.stopPropagation();
-                  instanceRef.current?.next();
-                }}
-                disabled={!instanceRef.current || isAtStart}
-              >
-                <ChevronLeft className="size-5" />
-              </Button>
-
-              <Button
-                size="icon"
-                className="absolute top-1/2 -translate-y-1/2 -right-2 sm:-right-4 xl:-right-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
-                onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                  e.stopPropagation();
-                  instanceRef.current?.prev();
-                }}
-                disabled={!instanceRef.current || isAtEnd}
-              >
-                <ChevronRight className="size-5" />
-              </Button>
-              <div className="flex flex-row justify-center gap-2 mt-6">
-                {[
-                  ...Array(instanceRef.current.track.details.slides.length),
-                ].map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => {
-                      instanceRef.current?.moveToIdx(idx);
-                    }}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      currentSlide === idx ? "bg-primary w-4" : "bg-primary/20"
-                    }`}
-                    aria-label={`الانتقال إلى الشريحة ${idx + 1}`}
+        ) : (
+          <div className="relative">
+            <div ref={sliderRef} className="keen-slider">
+              {featuredProducts.map((product) => (
+                <div className="keen-slider__slide" key={product._id}>
+                  <ProductCard
+                    key={product._id}
+                    product={product}
+                    variant="compact"
+                    onAddToCart={(_, e) => handleAddToCart(e)}
                   />
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+                </div>
+              ))}
+            </div>
+            {loaded && instanceRef.current && (
+              <>
+                <Button
+                  size="icon"
+                  className="absolute top-1/2 -translate-y-1/2 -left-2 sm:-left-4 xl:-left-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
+                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    e.stopPropagation();
+                    instanceRef.current?.next();
+                  }}
+                  disabled={!instanceRef.current || isAtStart}
+                >
+                  <ChevronLeft className="size-5" />
+                </Button>
+
+                <Button
+                  size="icon"
+                  className="absolute top-1/2 -translate-y-1/2 -right-2 sm:-right-4 xl:-right-16 rounded-full flex opacity-100 disabled:opacity-50 transition-opacity"
+                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
+                    e.stopPropagation();
+                    instanceRef.current?.prev();
+                  }}
+                  disabled={!instanceRef.current || isAtEnd}
+                >
+                  <ChevronRight className="size-5" />
+                </Button>
+                {instanceRef.current &&
+                  instanceRef.current.track &&
+                  instanceRef.current.track.details &&
+                  instanceRef.current.track.details.slides &&
+                  instanceRef.current.track.details.slides.length > 0 && (
+                    <div className="flex flex-row justify-center gap-2 mt-6">
+                      {[
+                        ...Array(
+                          instanceRef.current.track.details.slides.length
+                        ),
+                      ].map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            instanceRef.current?.moveToIdx(idx);
+                          }}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            currentSlide === idx
+                              ? "bg-primary w-4"
+                              : "bg-primary/20"
+                          }`}
+                          aria-label={`الانتقال إلى الشريحة ${idx + 1}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+              </>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
 };
+
