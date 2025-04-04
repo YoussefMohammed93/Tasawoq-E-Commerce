@@ -223,4 +223,16 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_and_product", ["userId", "productId"]),
+
+  cart: defineTable({
+    userId: v.id("users"),
+    productId: v.id("products"),
+    quantity: v.number(),
+    selectedSize: v.optional(v.string()),
+    selectedColor: v.optional(v.string()),
+    addedAt: v.string(),
+    updatedAt: v.string(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_product", ["userId", "productId"]),
 });

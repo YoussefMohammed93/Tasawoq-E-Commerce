@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useWishlist } from "@/contexts/wishlist-context";
+import { useCart } from "@/contexts/cart-context";
 import { Id } from "@/convex/_generated/dataModel";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +40,9 @@ export function ProductCard({
   onAddToCart,
 }: ProductCardProps) {
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addToCart, isProductInCart } = useCart();
   const isWishlisted = isInWishlist(product._id);
+  const isInCart = isProductInCart(product._id);
 
   // Calculate discounted price
   const discountedPrice =
@@ -49,8 +52,15 @@ export function ProductCard({
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log("Starting add to cart process...");
+
     if (onAddToCart) {
+      console.log("Using provided onAddToCart handler");
       onAddToCart(product._id, e);
+    } else {
+      console.log("Using default addToCart from context");
+      // The addToCart function will automatically select the smallest size and first color
+      addToCart(product._id, 1);
     }
   };
 
@@ -115,10 +125,7 @@ export function ProductCard({
           <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 flex flex-col gap-2">
             {/* Discount Badge */}
             {product.discountPercentage > 0 && (
-              <Badge
-                variant="destructive"
-                className="w-full text-center"
-              >
+              <Badge variant="destructive" className="w-full text-center">
                 خصم {product.discountPercentage}%
               </Badge>
             )}
@@ -200,9 +207,11 @@ export function ProductCard({
             <Button
               className="w-full gap-2 text-sm sm:text-base mt-auto"
               onClick={handleAddToCart}
+              variant={isInCart ? "secondary" : "default"}
+              disabled={isInCart} // Add this to prevent multiple clicks
             >
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-              إضافة للسلة
+              {isInCart ? "في السلة" : "إضافة للسلة"}
             </Button>
           )}
         </div>
@@ -210,4 +219,3 @@ export function ProductCard({
     </Link>
   );
 }
-

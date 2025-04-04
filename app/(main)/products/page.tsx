@@ -521,11 +521,7 @@ export default function ProductsPage() {
               {paginatedProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {paginatedProducts.map((product) => (
-                    <ProductCard
-                      key={product._id}
-                      product={product}
-                      onAddToCart={(_, e) => e.preventDefault()}
-                    />
+                    <ProductCard key={product._id} product={product} />
                   ))}
                 </div>
               ) : (

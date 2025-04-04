@@ -94,7 +94,6 @@ export default function SearchContent() {
                 key={product._id}
                 product={product}
                 aspectRatio="portrait"
-                onAddToCart={(_, e) => e.preventDefault()}
               />
             ))}
           </div>

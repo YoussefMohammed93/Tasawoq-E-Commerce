@@ -54,6 +54,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useWishlist } from "@/contexts/wishlist-context";
+import { useCart } from "@/contexts/cart-context";
 
 interface ProductReview {
   _id: string;
@@ -319,7 +320,9 @@ export default function ProductPage() {
   const [comment, setComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const { addToCart, isProductInCart } = useCart();
   const isWishlisted = product?._id ? isInWishlist(product._id) : false;
+  const isInCart = product?._id ? isProductInCart(product._id) : false;
 
   if (!product) {
     return (
@@ -614,9 +617,22 @@ export default function ProductPage() {
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-6">
-                <Button className="w-full sm:flex-1 gap-2 py-5 sm:py-6">
+                <Button
+                  className="w-full sm:flex-1 gap-2 py-5 sm:py-6"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    addToCart(
+                      product._id,
+                      quantity,
+                      selectedSize,
+                      selectedColor
+                    );
+                  }}
+                  variant={isInCart ? "secondary" : "default"}
+                  disabled={isInCart}
+                >
                   <ShoppingCart className="h-4 w-4" />
-                  إضافة للسلة
+                  {isInCart ? "في السلة" : "إضافة للسلة"}
                 </Button>
                 <Button
                   variant="outline"

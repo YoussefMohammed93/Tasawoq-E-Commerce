@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, Heart, Search, Menu } from "lucide-react";
 import { SearchDialog } from "@/components/search-dialog";
-// import { useWishlist } from "@/contexts/wishlist-context"; // Removed
+import { useCart } from "@/contexts/cart-context";
 
 const HeaderLinkSkeleton = ({ isMobile = false }: { isMobile?: boolean }) => {
   return isMobile ? (
@@ -33,7 +33,7 @@ export function Header() {
 
   const pathname = usePathname();
   const headerLinks = useQuery(api.header.getHeaderLinks);
-  // Removed wishlistCount destructuring
+  const { cartCount } = useCart();
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -120,9 +120,11 @@ export function Header() {
             >
               <Link href="/cart" className="relative">
                 <ShoppingCart className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">
-                  2
-                </span>
+                {cartCount > 0 && (
+                  <span className="absolute -top-2 -right-2 h-5.5 w-5.5 rounded-full bg-primary text-sm pt-0.5 font-medium text-primary-foreground flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
                 <span className="sr-only">السلة</span>
               </Link>
             </Button>
