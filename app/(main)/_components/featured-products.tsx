@@ -1,64 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import "keen-slider/keen-slider.min.css";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useKeenSlider } from "keen-slider/react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SectionHeading } from "@/components/ui/section-heading";
-import { ShoppingCart, ChevronLeft, ChevronRight, Heart } from "lucide-react";
-
-const products = [
-  {
-    id: 1,
-    title: "حقيبة يد جلدية فاخرة",
-    image: "/t-shirt.png",
-    description: "حقيبة يد نسائية مصنوعة من الجلد الطبيعي الفاخر",
-    category: "حقائب نسائية",
-    price: 799.99,
-    discountPercentage: 15,
-  },
-  {
-    id: 2,
-    title: "ساعة ذكية رياضية",
-    image: "/t-shirt.png",
-    description: "ساعة ذكية متعددة الوظائف لتتبع النشاط الرياضي",
-    category: "الساعات الذكية",
-    price: 499.99,
-    discountPercentage: 10,
-  },
-  {
-    id: 3,
-    title: "نظارة شمسية كلاسيكية",
-    image: "/t-shirt.png",
-    description: "نظارة شمسية بتصميم كلاسيكي أنيق",
-    category: "نظارات",
-    price: 299.99,
-    discountPercentage: 0,
-  },
-  {
-    id: 4,
-    title: "عطر فاخر للرجال",
-    image: "/t-shirt.png",
-    description: "عطر رجالي فاخر برائحة منعشة",
-    category: "عطور",
-    price: 450.99,
-    discountPercentage: 5,
-  },
-  {
-    id: 5,
-    title: "عطر فاخر للرجال",
-    image: "/t-shirt.png",
-    description: "عطر رجالي فاخر برائحة منعشة",
-    category: "عطور",
-    price: 450.99,
-    discountPercentage: 5,
-  },
-];
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { ProductCard } from "@/components/ui/product-card";
 
 const ProductSkeletonItem = () => {
   return (
@@ -122,9 +74,14 @@ export const ProductsSectionSkeleton = () => {
 };
 
 export const ProductsSection = () => {
-  const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
+
+  // Fetch products from backend
+  const productsData = useQuery(api.products.getProducts);
+  const isLoading = productsData === undefined;
+
+  // No need to get wishlist functionality here as it's handled in the ProductCard component
 
   const [sliderRef, instanceRef] = useKeenSlider({
     initial: 0,
@@ -153,14 +110,12 @@ export const ProductsSection = () => {
     },
   });
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   if (isLoading) {
     return <ProductsSectionSkeleton />;
   }
+
+  // Get featured products (first 8 products)
+  const featuredProducts = productsData?.slice(0, 8) || [];
 
   const totalSlides = instanceRef.current?.track.details.slides.length || 0;
   const perView =
@@ -180,13 +135,6 @@ export const ProductsSection = () => {
     e.stopPropagation();
   };
 
-  const handleAddToWishlist = (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-  };
-
   return (
     <section className="py-12 bg-background">
       <div className="max-w-7xl mx-auto px-5">
@@ -198,83 +146,17 @@ export const ProductsSection = () => {
         </div>
         <div className="relative">
           <div ref={sliderRef} className="keen-slider">
-            {products.map((product) => {
-              const discountedPrice =
-                product.price * (1 - product.discountPercentage / 100);
-              return (
-                <div className="keen-slider__slide" key={product.id}>
-                  <Link
-                    href={`/products/${product.id}`}
-                    className="block group"
-                  >
-                    <Card className="h-[400px] lg:h-[380px] flex flex-col p-0">
-                      <div className="relative w-full h-[250px] lg:h-[230px] overflow-hidden">
-                        <Image
-                          src={product.image}
-                          alt={product.title}
-                          fill
-                          className="object-contain rounded-t-xl p-4"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
-                        />
-                        {product.discountPercentage > 0 && (
-                          <Badge
-                            variant="destructive"
-                            className="absolute top-3 right-3 z-10 shadow-md"
-                          >
-                            خصم {product.discountPercentage}%
-                          </Badge>
-                        )}
-                        <Button
-                          variant="outline"
-                          size="icon"
-                          className="absolute top-3 left-3 z-10"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleAddToWishlist();
-                          }}
-                        >
-                          <Heart className="h-5 w-5 text-primary" />
-                        </Button>
-                      </div>
-                      <div className="flex flex-col flex-1 p-4 pt-0 gap-2.5">
-                        <div className="flex items-center justify-between">
-                          <Badge variant="outline" className="text-xs">
-                            {product.category}
-                          </Badge>
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-primary text-base">
-                              {discountedPrice.toFixed(2)} ر.س
-                            </span>
-                            {product.discountPercentage > 0 && (
-                              <span className="text-muted-foreground line-through text-xs">
-                                {product.price.toFixed(2)} ر.س
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <h3 className="font-semibold text-lg line-clamp-2 group-hover:text-primary transition-colors">
-                          {product.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm line-clamp-2 mb-2">
-                          {product.description}
-                        </p>
-                        <Button
-                          className="w-full gap-2 mt-auto"
-                          size="default"
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleAddToCart(e);
-                          }}
-                        >
-                          <ShoppingCart className="h-5 w-5" />
-                          إضافة للسلة
-                        </Button>
-                      </div>
-                    </Card>
-                  </Link>
-                </div>
-              );
-            })}
+            {featuredProducts.map((product) => (
+              <div className="keen-slider__slide" key={product._id}>
+                <ProductCard
+                  product={product}
+                  variant="compact"
+                  aspectRatio="custom"
+                  className="h-[400px] lg:h-[380px]"
+                  onAddToCart={(_, e) => handleAddToCart(e)}
+                />
+              </div>
+            ))}
           </div>
           {loaded && instanceRef.current && (
             <>

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, Heart, Search, Menu } from "lucide-react";
 import { SearchDialog } from "@/components/search-dialog";
+// import { useWishlist } from "@/contexts/wishlist-context"; // Removed
 
 const HeaderLinkSkeleton = ({ isMobile = false }: { isMobile?: boolean }) => {
   return isMobile ? (
@@ -32,6 +33,7 @@ export function Header() {
 
   const pathname = usePathname();
   const headerLinks = useQuery(api.header.getHeaderLinks);
+  // Removed wishlistCount destructuring
 
   const isActive = (href: string) => {
     if (href === "/") {
@@ -76,7 +78,7 @@ export function Header() {
               ))
             )}
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2.5">
             <Button
               variant="ghost"
               size="icon"
@@ -101,7 +103,7 @@ export function Header() {
               )}
               asChild
             >
-              <Link href="/wishlist">
+              <Link href="/wishlist" className="relative">
                 <Heart className="h-5 w-5" />
                 <span className="sr-only">المفضلة</span>
               </Link>

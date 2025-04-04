@@ -60,18 +60,6 @@ export function DashboardSidebar() {
       href: "/dashboard/sections/categories",
     },
     {
-      label: "تخفيضات حصرية",
-      href: "/dashboard/sections/sales",
-    },
-    {
-      label: "وصل حديثا",
-      href: "/dashboard/sections/new-arrivals",
-    },
-    {
-      label: "منتجات مميزة",
-      href: "/dashboard/sections/featured-products",
-    },
-    {
       label: "تواصل معنا",
       href: "/dashboard/sections/contact",
     },

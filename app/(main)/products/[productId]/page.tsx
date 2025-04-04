@@ -53,6 +53,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useWishlist } from "@/contexts/wishlist-context";
 
 interface ProductReview {
   _id: string;
@@ -317,10 +318,12 @@ export default function ProductPage() {
   const [hoveredRating, setHoveredRating] = useState(0);
   const [comment, setComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
+  const isWishlisted = product?._id ? isInWishlist(product._id) : false;
 
   if (!product) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -388,6 +391,7 @@ export default function ProductPage() {
                     priority
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
+                  {/* Discount Badge */}
                   {product.discountPercentage > 0 && (
                     <Badge
                       variant="destructive"
@@ -396,6 +400,50 @@ export default function ProductPage() {
                       خصم {product.discountPercentage}%
                     </Badge>
                   )}
+
+                  {/* New Badge */}
+                  {product.badges?.includes("جديد") && (
+                    <Badge
+                      variant="default"
+                      className="absolute top-2 sm:top-4 right-2 sm:right-4 mt-8 bg-green-500"
+                    >
+                      جديد
+                    </Badge>
+                  )}
+
+                  {/* Special Offer Badge */}
+                  {product.badges?.includes("عرض خاص") && (
+                    <Badge
+                      variant="default"
+                      className="absolute top-2 sm:top-4 right-2 sm:right-4 mt-16 bg-blue-500"
+                    >
+                      عرض خاص
+                    </Badge>
+                  )}
+
+                  {/* Wishlist Button */}
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="absolute top-2 sm:top-4 left-2 sm:left-4 z-10 bg-background/80 backdrop-blur-sm hover:bg-background"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (isWishlisted) {
+                        removeFromWishlist(product._id);
+                      } else {
+                        addToWishlist(product._id);
+                      }
+                    }}
+                  >
+                    <Heart
+                      className={cn(
+                        "h-4 w-4 sm:h-5 sm:w-5",
+                        isWishlisted
+                          ? "fill-primary text-primary"
+                          : "text-muted-foreground"
+                      )}
+                    />
+                  </Button>
                 </div>
               </AspectRatio>
               {product.galleryUrls && product.galleryUrls.length > 0 && (
@@ -573,9 +621,22 @@ export default function ProductPage() {
                 <Button
                   variant="outline"
                   className="w-full sm:flex-1 gap-2 py-5 sm:py-6"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (isWishlisted) {
+                      removeFromWishlist(product._id);
+                    } else {
+                      addToWishlist(product._id);
+                    }
+                  }}
                 >
-                  <Heart className="h-4 w-4" />
-                  إضافة للمفضلة
+                  <Heart
+                    className={cn(
+                      "h-4 w-4",
+                      isWishlisted ? "fill-primary text-primary" : ""
+                    )}
+                  />
+                  {isWishlisted ? "إزالة من المفضلة" : "إضافة للمفضلة"}
                 </Button>
               </div>
 
@@ -586,12 +647,35 @@ export default function ProductPage() {
                 </h2>
                 <div className="space-y-2">
                   <div className="flex flex-wrap gap-1.5 sm:gap-2">
+                    {/* Status Badge */}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-xs sm:text-sm",
+                        product.quantity > 0
+                          ? "border-transparent bg-green-500 text-white"
+                          : "border-transparent bg-red-500 text-white"
+                      )}
+                    >
+                      {product.quantity > 0 ? "متوفر" : "غير متوفر"}
+                    </Badge>
+                    {/* Discount Badge */}
+                    {product.discountPercentage > 0 && (
+                      <Badge
+                        variant="outline"
+                        className="text-xs sm:text-sm border-transparent bg-red-500 text-white"
+                      >
+                        خصم {product.discountPercentage}%
+                      </Badge>
+                    )}
                     {category && (
                       <Badge variant="outline" className="text-xs sm:text-sm">
                         {category.name}
                       </Badge>
                     )}
-                    {product.badges.length > 0 &&
+                    {/* Product Badges */}
+                    {product.badges &&
+                      product.badges.length > 0 &&
                       product.badges.map((badge) => (
                         <Badge
                           key={badge}
@@ -803,7 +887,7 @@ export default function ProductPage() {
                   />
                 ))
               ) : (
-                <div className="col-span-2 flex flex-col items-center justify-center py-10 px-4 sm:py-16 bg-muted/10 rounded-lg border border-dashed border-muted-foreground/20">
+                <div className="col-span-2 flex flex-col items-center justify-center py-10 px-4 sm:py-16 bg-muted/10 rounded-lg border border-dashed border-muted-foreground/50">
                   <div className="bg-primary/5 p-4 rounded-full mb-4">
                     <MessageSquare className="h-8 w-8 sm:h-10 sm:w-10 text-primary/60" />
                   </div>

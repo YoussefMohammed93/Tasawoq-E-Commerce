@@ -6,12 +6,10 @@ import { useSearchParams } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import Link from "next/link";
-import Image from "next/image";
-import { Heart, Search, ShoppingCart } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Search } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ProductCard } from "@/components/ui/product-card";
+import { Card } from "@/components/ui/card";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -92,76 +90,12 @@ export default function SearchContent() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {paginatedProducts.map((product) => (
-              <Link
+              <ProductCard
                 key={product._id}
-                href={`/products/${product._id}`}
-                className="block group"
-              >
-                <Card className="h-[465px] md:h-[520px] lg:h-[470px] xl:h-[450px] flex flex-col p-0">
-                  <div className="relative aspect-[4/3]">
-                    <Image
-                      src={
-                        product.mainImageUrl ?? "/placeholder-product.jpg"
-                      }
-                      alt={product.name}
-                      fill
-                      className="object-contain p-2 sm:p-4 sm:pb-0"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                    />
-                    {product.discountPercentage > 0 && (
-                      <Badge
-                        variant="destructive"
-                        className="absolute top-2 sm:top-3 right-2 sm:right-3"
-                      >
-                        خصم {product.discountPercentage}%
-                      </Badge>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="absolute top-2 sm:top-3 left-2 sm:left-3"
-                      onClick={(e) => {
-                        e.preventDefault();
-                      }}
-                    >
-                      <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-                    </Button>
-                  </div>
-                  <div className="p-3 pt-0 sm:p-4 flex flex-col gap-2 flex-1">
-                    <h3 className="font-semibold text-sm sm:text-base line-clamp-2">
-                      {product.name}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
-                      {product.description}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        <span className="font-bold text-primary text-sm sm:text-base">
-                          {(
-                            product.price *
-                            (1 - product.discountPercentage / 100)
-                          ).toFixed(2)}{" "}
-                          ر.س
-                        </span>
-                        {product.discountPercentage > 0 && (
-                          <span className="text-xs text-muted-foreground line-through">
-                            {product.price} ر.س
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      className="w-full gap-2 text-sm sm:text-base mt-auto"
-                      onClick={(e) => {
-                        e.preventDefault();
-                      }}
-                    >
-                      <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-                      إضافة للسلة
-                    </Button>
-                  </div>
-                </Card>
-              </Link>
+                product={product}
+                aspectRatio="portrait"
+                onAddToCart={(_, e) => e.preventDefault()}
+              />
             ))}
           </div>
 
@@ -247,9 +181,7 @@ export default function SearchContent() {
           <div className="bg-muted p-5 rounded-full mb-4">
             <Search className="h-9 w-9 text-muted-foreground" />
           </div>
-          <h3 className="text-lg font-medium mb-2">
-            لم يتم العثور على نتائج
-          </h3>
+          <h3 className="text-lg font-medium mb-2">لم يتم العثور على نتائج</h3>
           {searchQuery && (
             <p className="text-sm text-muted-foreground mb-2">
               لا توجد منتجات تطابق {searchQuery}

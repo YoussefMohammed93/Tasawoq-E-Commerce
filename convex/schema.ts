@@ -208,11 +208,19 @@ export default defineSchema({
     phone: v.optional(v.string()),
     subject: v.optional(v.string()),
     message: v.string(),
-    status: v.string(), // 'new', 'read', 'replied', 'archived'
+    status: v.string(),
     createdAt: v.string(),
     updatedAt: v.optional(v.string()),
     notes: v.optional(v.string()),
   })
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"]),
+
+  wishlist: defineTable({
+    userId: v.id("users"),
+    productId: v.id("products"),
+    addedAt: v.string(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_and_product", ["userId", "productId"]),
 });

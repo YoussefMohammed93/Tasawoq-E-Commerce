@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
   Sheet,
@@ -20,9 +18,7 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { useQuery } from "convex/react";
-import { Card } from "@/components/ui/card";
 import { api } from "@/convex/_generated/api";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Footer } from "@/components/ui/footer";
 import { Button } from "@/components/ui/button";
@@ -30,7 +26,9 @@ import { Slider } from "@/components/ui/slider";
 import { Header } from "@/components/ui/header";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, ShoppingCart, Search, FilterIcon } from "lucide-react";
+import { Search, FilterIcon, ShoppingCart } from "lucide-react";
+import { ProductCard } from "@/components/ui/product-card";
+import { Card } from "@/components/ui/card";
 
 const ProductsSkeleton = () => {
   return (
@@ -523,94 +521,11 @@ export default function ProductsPage() {
               {paginatedProducts.length > 0 ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                   {paginatedProducts.map((product) => (
-                    <Link
+                    <ProductCard
                       key={product._id}
-                      href={`/products/${product._id}`}
-                      className="block"
-                    >
-                      <Card className="group py-0 cursor-pointer">
-                        <div className="relative aspect-square">
-                          {product.mainImageUrl && (
-                            <Image
-                              src={product.mainImageUrl}
-                              alt={product.name}
-                              fill
-                              className="object-contain rounded-t-lg p-10 pb-0 sm:p-8 sm:pb-0 lg:p-6 lg:pb-0"
-                            />
-                          )}
-                          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 flex flex-col gap-1 sm:gap-2">
-                            <div key="discount">
-                              {product.discountPercentage > 0 && (
-                                <Badge variant="destructive">
-                                  خصم {product.discountPercentage}%
-                                </Badge>
-                              )}
-                            </div>
-                            <div key="status">
-                              {product.badges.includes("جديد") && (
-                                <Badge
-                                  variant="default"
-                                  className="bg-green-500"
-                                >
-                                  جديد
-                                </Badge>
-                              )}
-                              {product.badges.includes("عرض خاص") && (
-                                <Badge
-                                  variant="default"
-                                  className="bg-blue-500"
-                                >
-                                  عرض خاص
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            className="absolute top-2 sm:top-3 left-2 sm:left-3 opacity-0 group-hover:opacity-100 transition-opacity"
-                            onClick={(e) => {
-                              e.preventDefault();
-                            }}
-                          >
-                            <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
-                          </Button>
-                        </div>
-                        <div className="p-3 sm:p-4 sm:pt-0">
-                          <h3 className="font-semibold mb-1 sm:mb-2 text-sm sm:text-base">
-                            {product.name}
-                          </h3>
-                          <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 line-clamp-2">
-                            {product.description}
-                          </p>
-                          <div className="flex items-center justify-between mb-3 sm:mb-4">
-                            <div className="flex items-center gap-1 sm:gap-2">
-                              {product.discountPercentage > 0 && (
-                                <span className="text-xs text-muted-foreground line-through">
-                                  {product.price} ر.س
-                                </span>
-                              )}
-                              <span className="font-bold text-primary text-sm sm:text-base">
-                                {(
-                                  product.price *
-                                  (1 - product.discountPercentage / 100)
-                                ).toFixed(2)}{" "}
-                                ر.س
-                              </span>
-                            </div>
-                          </div>
-                          <Button
-                            className="w-full gap-2 text-sm sm:text-base"
-                            onClick={(e) => {
-                              e.preventDefault();
-                            }}
-                          >
-                            <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-                            إضافة للسلة
-                          </Button>
-                        </div>
-                      </Card>
-                    </Link>
+                      product={product}
+                      onAddToCart={(_, e) => e.preventDefault()}
+                    />
                   ))}
                 </div>
               ) : (
