@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { ConvexClientProvider } from "./convex-client-provider";
 import { WishlistProvider } from "@/contexts/wishlist-context";
 import { CartProvider } from "@/contexts/cart-context";
+import { StripeProvider } from "./providers/stripe-provider";
 
 const elMessiri = El_Messiri({
   variable: "--font-el-messiri",
@@ -29,13 +30,15 @@ export default function RootLayout({
           <ConvexClientProvider>
             <WishlistProvider>
               <CartProvider>
-                {children}
-                <Toaster
-                  richColors
-                  closeButton
-                  position="bottom-right"
-                  dir="rtl"
-                />
+                <StripeProvider>
+                  {children}
+                  <Toaster
+                    richColors
+                    closeButton
+                    position="bottom-right"
+                    dir="rtl"
+                  />
+                </StripeProvider>
               </CartProvider>
             </WishlistProvider>
           </ConvexClientProvider>
@@ -44,3 +47,4 @@ export default function RootLayout({
     </ClerkProvider>
   );
 }
+

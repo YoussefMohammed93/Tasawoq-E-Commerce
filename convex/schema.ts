@@ -274,6 +274,8 @@ export default defineSchema({
     paymentMethod: v.string(),
     couponCode: v.optional(v.string()),
     couponDiscount: v.optional(v.number()),
+    stripePaymentId: v.optional(v.string()),
+    paymentStatus: v.optional(v.string()), // succeeded, pending, failed
     createdAt: v.string(),
     updatedAt: v.optional(v.string()),
   })

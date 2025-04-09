@@ -91,6 +91,7 @@ export const createOrder = mutation({
     paymentMethod: v.string(),
     couponCode: v.optional(v.string()),
     couponDiscount: v.optional(v.number()),
+    stripePaymentId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Get the current user
@@ -161,6 +162,15 @@ export const createOrder = mutation({
 
     // Create the order
     const now = new Date().toISOString();
+
+    // Determine payment status based on payment method
+    let paymentStatus = "pending";
+    if (args.paymentMethod === "cash_on_delivery") {
+      paymentStatus = "pending"; // Will be paid on delivery
+    } else if (args.paymentMethod === "stripe" && args.stripePaymentId) {
+      paymentStatus = "succeeded"; // Stripe payment was successful
+    }
+
     const orderId = await ctx.db.insert("orders", {
       userId: user._id,
       orderNumber,
@@ -181,6 +191,8 @@ export const createOrder = mutation({
       paymentMethod: args.paymentMethod,
       couponCode: args.couponCode,
       couponDiscount: args.couponDiscount,
+      stripePaymentId: args.stripePaymentId,
+      paymentStatus,
       createdAt: now,
       updatedAt: now,
     });

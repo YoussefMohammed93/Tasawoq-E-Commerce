@@ -446,7 +446,7 @@ export default function CartPage() {
 
                 <div>
                   <Card>
-                    <CardContent className="p-6">
+                    <CardContent className="px-6">
                       <h3 className="text-lg font-semibold mb-4">ملخص الطلب</h3>
                       <div className="space-y-2">
                         <div className="flex justify-between">

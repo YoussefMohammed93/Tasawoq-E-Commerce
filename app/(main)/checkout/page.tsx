@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { StripePaymentForm } from "../_components/stripe-payment-form";
 import {
   ArrowLeft,
   ArrowRight,
@@ -36,6 +37,8 @@ import {
   Download,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { StripeProvider } from "@/app/providers/stripe-provider";
 
 // Skeleton loaders
 function CheckoutSummarySkeleton() {
@@ -129,6 +132,14 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [localLoading, setLocalLoading] = useState(true);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState("cash_on_delivery");
+  const [stripeClientSecret, setStripeClientSecret] = useState<string | null>(
+    null
+  );
+  const [stripeLoading, setStripeLoading] = useState(false);
+  const [stripePaymentIntentId, setStripePaymentIntentId] = useState<
+    string | null
+  >(null);
 
   // Handle form input changes
   const handleInputChange = (
@@ -204,11 +215,88 @@ export default function CheckoutPage() {
     orderTotal?: number;
   } | null>(null);
 
+  // Create Stripe payment intent
+  const createPaymentIntent = useCallback(async () => {
+    if (paymentMethod !== "stripe") return;
+
+    setStripeLoading(true);
+    try {
+      const response = await fetch("/api/stripe/payment-intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          amount: total,
+          currency: "SAR",
+          metadata: {
+            customer_name: formData.fullName,
+            customer_email: formData.email,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create payment intent");
+      }
+
+      const data = await response.json();
+      setStripeClientSecret(data.clientSecret);
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      toast.error("حدث خطأ أثناء تجهيز بوابة الدفع");
+    } finally {
+      setStripeLoading(false);
+    }
+  }, [paymentMethod, total, formData.fullName, formData.email]);
+
+  // Handle payment method change
+  useEffect(() => {
+    if (
+      activeStep === "payment" &&
+      paymentMethod === "stripe" &&
+      !stripeClientSecret
+    ) {
+      createPaymentIntent();
+    }
+  }, [activeStep, paymentMethod, stripeClientSecret, createPaymentIntent]);
+
+  // Handle Stripe payment success
+  const handleStripePaymentSuccess = (paymentIntentId: string) => {
+    setStripePaymentIntentId(paymentIntentId);
+    // Only proceed with order creation if we're not already in the confirmation step
+    if (activeStep !== "confirmation") {
+      handlePaymentSubmit(paymentIntentId);
+    }
+  };
+
+  // Handle Stripe payment error
+  const handleStripePaymentError = () => {
+    if (activeStep !== "confirmation") {
+      toast.error("حدث خطأ أثناء عملية الدفع. يرجى المحاولة مرة أخرى.");
+    }
+  };
+
   // Handle payment submission
-  const handlePaymentSubmit = async () => {
+  const handlePaymentSubmit = async (stripePaymentId?: string) => {
+    // If we're already in the confirmation step, don't create another order
+    if (activeStep === "confirmation" || orderDetails !== null) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
+      // If using Stripe and no payment ID is provided, don't proceed
+      if (
+        paymentMethod === "stripe" &&
+        !stripePaymentId &&
+        !stripePaymentIntentId
+      ) {
+        setIsSubmitting(false);
+        return;
+      }
+
       // Create the order
       const result = await createOrderMutation({
         fullName: formData.fullName,
@@ -220,9 +308,10 @@ export default function CheckoutPage() {
         street: formData.street,
         postalCode: formData.postalCode || undefined,
         notes: formData.notes || undefined,
-        paymentMethod: "cash_on_delivery", // Currently only supporting cash on delivery
+        paymentMethod: paymentMethod,
         couponCode: coupon?.code,
         couponDiscount: discountAmount,
+        stripePaymentId: stripePaymentId || stripePaymentIntentId || undefined,
       });
 
       // Store order details for confirmation page including current totals
@@ -248,7 +337,10 @@ export default function CheckoutPage() {
       toast.success("تم تأكيد طلبك بنجاح!");
     } catch (error) {
       console.error("Error creating order:", error);
-      toast.error("حدث خطأ أثناء إنشاء الطلب. يرجى المحاولة مرة أخرى.");
+      // Only show error toast if we're not already in the confirmation step
+      if (activeStep !== "confirmation") {
+        toast.error("حدث خطأ أثناء إنشاء الطلب. يرجى المحاولة مرة أخرى.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -263,7 +355,7 @@ export default function CheckoutPage() {
       cartItems.length === 0 &&
       activeStep !== "confirmation"
     ) {
-      toast.error("سلة التسوق فارغة");
+      // Remove the toast.error call
       router.push("/cart");
     }
   }, [cartItems, cartLoading, router, activeStep]);
@@ -483,7 +575,7 @@ export default function CheckoutPage() {
     <>
       <Header />
       <main className="flex-1 pt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="max-w-7xl mx-auto px5 py-8">
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl sm:text-3xl font-bold">إتمام الطلب</h1>
@@ -499,7 +591,7 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <Card>
-                    <CardContent className="p-6">
+                    <CardContent className="py-0 px-6">
                       <CheckoutFormSkeleton />
                     </CardContent>
                   </Card>
@@ -512,7 +604,7 @@ export default function CheckoutPage() {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2">
                   <Card>
-                    <CardContent className="p-6">
+                    <CardContent className="py-0 px-6">
                       <Tabs value={activeStep} className="w-full">
                         <TabsList className="grid w-full grid-cols-3 mb-8">
                           <TabsTrigger
@@ -834,30 +926,93 @@ export default function CheckoutPage() {
                             <div className="space-y-4">
                               <h3 className="font-medium">اختر طريقة الدفع</h3>
 
-                              <div className="border rounded-lg p-4 bg-primary/5 flex items-center gap-3">
-                                <div className="size-5 rounded-full border-2 border-primary flex items-center justify-center">
-                                  <div className="size-2 bg-primary rounded-full"></div>
+                              <RadioGroup
+                                value={paymentMethod}
+                                onValueChange={setPaymentMethod}
+                                className="space-y-3"
+                              >
+                                <div
+                                  className={`border rounded-lg p-4 ${paymentMethod === "cash_on_delivery" ? "bg-primary/5 border-primary" : "bg-card"} flex items-center gap-3`}
+                                >
+                                  <RadioGroupItem
+                                    value="cash_on_delivery"
+                                    id="cash_on_delivery"
+                                  />
+                                  <div className="flex-1">
+                                    <label
+                                      htmlFor="cash_on_delivery"
+                                      className="flex flex-col cursor-pointer"
+                                    >
+                                      <span className="font-medium">
+                                        الدفع عند الاستلام
+                                      </span>
+                                      <span className="text-sm text-muted-foreground">
+                                        ادفع نقدً عند استلام طلبك
+                                      </span>
+                                    </label>
+                                  </div>
                                 </div>
-                                <div className="flex-1">
-                                  <p className="font-medium">
-                                    الدفع عند الاستلام
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    ادفع نقدً عند استلام طلبك
-                                  </p>
-                                </div>
-                              </div>
 
-                              {/* Placeholder for future payment methods */}
-                              <div className="border rounded-lg p-4 bg-muted/30 flex items-center gap-3 opacity-60">
-                                <div className="size-5 rounded-full border-2 border-muted-foreground flex items-center justify-center"></div>
-                                <div className="flex-1">
-                                  <p className="font-medium">بطاقة ائتمان</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    قريباً - ادفع باستخدام بطاقة الائتمان
-                                  </p>
+                                <div
+                                  className={`border rounded-lg p-4 ${paymentMethod === "stripe" ? "bg-primary/5 border-primary" : "bg-card"} flex items-center gap-3`}
+                                >
+                                  <RadioGroupItem value="stripe" id="stripe" />
+                                  <div className="flex-1">
+                                    <label
+                                      htmlFor="stripe"
+                                      className="flex flex-col cursor-pointer"
+                                    >
+                                      <span className="font-medium">
+                                        بطاقة ائتمان
+                                      </span>
+                                      <span className="text-sm text-muted-foreground">
+                                        ادفع باستخدام بطاقة الائتمان أو مدى
+                                      </span>
+                                    </label>
+                                  </div>
                                 </div>
-                              </div>
+                              </RadioGroup>
+
+                              {paymentMethod === "stripe" && (
+                                <div className="mt-4 border rounded-lg p-4">
+                                  <h4 className="font-medium mb-4">
+                                    تفاصيل الدفع
+                                  </h4>
+                                  {stripeLoading ? (
+                                    <div className="flex items-center justify-center py-8">
+                                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                                      <span className="mr-2">
+                                        جاري تجهيز بوابة الدفع...
+                                      </span>
+                                    </div>
+                                  ) : stripeClientSecret ? (
+                                    <StripeProvider
+                                      clientSecret={stripeClientSecret}
+                                    >
+                                      <StripePaymentForm
+                                        clientSecret={stripeClientSecret}
+                                        amount={total}
+                                        onSuccess={handleStripePaymentSuccess}
+                                        onError={handleStripePaymentError}
+                                      />
+                                    </StripeProvider>
+                                  ) : (
+                                    <div className="text-center py-4">
+                                      <p className="text-red-500">
+                                        حدث خطأ أثناء تجهيز بوابة الدفع
+                                      </p>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={createPaymentIntent}
+                                        className="mt-2"
+                                      >
+                                        إعادة المحاولة
+                                      </Button>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
 
                             <div className="flex flex-row-reverse justify-between">
@@ -870,29 +1025,31 @@ export default function CheckoutPage() {
                                 <ArrowLeft className="h-4 w-4" />
                               </Button>
 
-                              <Button
-                                onClick={handlePaymentSubmit}
-                                disabled={isSubmitting}
-                                className="gap-2"
-                              >
-                                {isSubmitting ? (
-                                  <>
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                    جاري المعالجة...
-                                  </>
-                                ) : (
-                                  <>
-                                    <ArrowRight className="h-4 w-4" />
-                                    تأكيد الطلب
-                                  </>
-                                )}
-                              </Button>
+                              {paymentMethod === "cash_on_delivery" && (
+                                <Button
+                                  onClick={() => handlePaymentSubmit()}
+                                  disabled={isSubmitting}
+                                  className="gap-2"
+                                >
+                                  {isSubmitting ? (
+                                    <>
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      جاري المعالجة...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <ArrowRight className="h-4 w-4" />
+                                      تأكيد الطلب
+                                    </>
+                                  )}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </TabsContent>
 
                         <TabsContent value="confirmation" className="mt-0">
-                          <div className="text-center py-8 space-y-6">
+                          <div className="text-center pb-8 space-y-6">
                             <div className="mx-auto bg-primary/10 rounded-full p-6 w-24 h-24 flex items-center justify-center">
                               <CheckCircle className="h-12 w-12 text-primary" />
                             </div>
@@ -910,6 +1067,7 @@ export default function CheckoutPage() {
                             <div
                               className="p-4 rounded-lg border max-w-md mx-auto text-right relative overflow-hidden"
                               style={{ backgroundColor: "#f8f8f8" }}
+                              dir="rtl"
                             >
                               <div
                                 className="absolute top-0 left-0 w-24 h-24 rounded-br-full -translate-x-8 -translate-y-8"
@@ -964,7 +1122,9 @@ export default function CheckoutPage() {
                                       طريقة الدفع:
                                     </span>
                                     <span className="font-medium">
-                                      الدفع عند الاستلام
+                                      {paymentMethod === "stripe"
+                                        ? "بطاقة ائتمان"
+                                        : "الدفع عند الاستلام"}
                                     </span>
                                   </div>
                                   <div className="flex justify-between">
@@ -988,28 +1148,30 @@ export default function CheckoutPage() {
                                         : `${orderDetails?.orderShipping?.toFixed(2) || "0.00"} ر.س`}
                                     </span>
                                   </div>
-                                  {orderDetails?.orderDiscount &&
-                                    orderDetails.orderDiscount > 0 && (
-                                      <div
-                                        className="flex justify-between"
-                                        style={{ color: "#22c55e" }}
-                                      >
-                                        <span className="flex items-center gap-1">
-                                          <Ticket
-                                            className="h-4 w-4"
-                                            style={{ color: "#22c55e" }}
-                                          />
-                                          خصم
-                                        </span>
-                                        <span>
-                                          -{" "}
-                                          {orderDetails.orderDiscount.toFixed(
-                                            2
-                                          )}{" "}
-                                          ر.س
-                                        </span>
-                                      </div>
-                                    )}
+                                  {(activeStep === "confirmation"
+                                    ? (orderDetails?.orderDiscount ?? 0) > 0
+                                    : (discountAmount ?? 0) > 0) && (
+                                    <div className="flex justify-between text-green-600">
+                                      <span className="flex items-center gap-1">
+                                        <Ticket className="h-4 w-4" />
+                                        خصم{" "}
+                                        {activeStep !== "confirmation" &&
+                                          coupon &&
+                                          `(${coupon.discountPercentage}%)`}
+                                      </span>
+                                      <span>
+                                        -{" "}
+                                        {activeStep === "confirmation"
+                                          ? (
+                                              orderDetails?.orderDiscount ?? 0
+                                            ).toFixed(2)
+                                          : (discountAmount ?? 0).toFixed(
+                                              2
+                                            )}{" "}
+                                        ر.س
+                                      </span>
+                                    </div>
+                                  )}
                                   <div className="flex justify-between font-bold">
                                     <span style={{ color: "#666666" }}>
                                       الإجمالي:
@@ -1062,7 +1224,7 @@ export default function CheckoutPage() {
 
                 <div>
                   <Card>
-                    <CardContent className="p-6">
+                    <CardContent className="py-0">
                       <h3 className="text-lg font-semibold mb-4">ملخص الطلب</h3>
 
                       <div className="space-y-4 mb-4">
@@ -1151,9 +1313,8 @@ export default function CheckoutPage() {
                           </span>
                         </div>
                         {(activeStep === "confirmation"
-                          ? orderDetails?.orderDiscount &&
-                            orderDetails.orderDiscount > 0
-                          : coupon && coupon.discountPercentage > 0) && (
+                          ? (orderDetails?.orderDiscount ?? 0) > 0
+                          : (discountAmount ?? 0) > 0) && (
                           <div className="flex justify-between text-green-600">
                             <span className="flex items-center gap-1">
                               <Ticket className="h-4 w-4" />
@@ -1163,11 +1324,10 @@ export default function CheckoutPage() {
                                 `(${coupon.discountPercentage}%)`}
                             </span>
                             <span>
-                              -
+                              -{" "}
                               {activeStep === "confirmation"
-                                ? orderDetails?.orderDiscount?.toFixed(2) ||
-                                  "0.00"
-                                : discountAmount.toFixed(2)}{" "}
+                                ? (orderDetails?.orderDiscount ?? 0).toFixed(2)
+                                : (discountAmount ?? 0).toFixed(2)}{" "}
                               ر.س
                             </span>
                           </div>
@@ -1185,7 +1345,7 @@ export default function CheckoutPage() {
                         </span>
                       </div>
 
-                      <div className="bg-muted/50 p-3 rounded-lg text-sm flex items-start gap-3 mt-4">
+                      <div className="bg-muted p-3 rounded-lg text-sm flex items-start gap-3 mt-4">
                         <Truck className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
                         <div>
                           <p className="font-medium">معلومات الشحن</p>
@@ -1208,3 +1368,4 @@ export default function CheckoutPage() {
     </>
   );
 }
+
