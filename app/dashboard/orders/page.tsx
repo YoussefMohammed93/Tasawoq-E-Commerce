@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Card, CardContent } from "@/components/ui/card";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import Link from "next/link";
 
@@ -46,6 +46,14 @@ export default function OrdersPage() {
   });
 
   const orders = useQuery(api.orders.getAllOrders);
+  const markOrdersAsRead = useMutation(api.orders.markAllOrdersAsRead);
+
+  // Mark all orders as read when the page loads
+  useEffect(() => {
+    if (orders && orders.length > 0) {
+      markOrdersAsRead();
+    }
+  }, [orders, markOrdersAsRead]);
 
   // Calculate order statistics
   const orderStats = useMemo(() => {
@@ -106,12 +114,8 @@ export default function OrdersPage() {
         return "bg-yellow-50 text-yellow-700";
       case "processing":
         return "bg-blue-50 text-blue-700";
-      case "تم الشحن":
-        return "bg-indigo-50 text-indigo-700";
       case "delivered":
         return "bg-green-50 text-green-700";
-      case "completed":
-        return "bg-emerald-50 text-emerald-700";
       case "cancelled":
         return "bg-red-50 text-red-700";
       default:
@@ -121,14 +125,10 @@ export default function OrdersPage() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "completed":
-        return "مكتمل";
       case "processing":
         return "قيد المعالجة";
       case "pending":
         return "قيد الانتظار";
-      case "تم الشحن":
-        return "تم الشحن";
       case "delivered":
         return "تم التوصيل";
       case "cancelled":

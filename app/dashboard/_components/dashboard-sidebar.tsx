@@ -26,9 +26,10 @@ import {
   SidebarMenuSubButton,
 } from "@/components/ui/sidebar";
 import { useState } from "react";
-import { useQuery } from "convex/react";
+import { useQuery, useMutation } from "convex/react";
 import { usePathname } from "next/navigation";
 import { api } from "@/convex/_generated/api";
+import { useEffect } from "react";
 
 export function DashboardSidebar() {
   const pathname = usePathname();
@@ -36,8 +37,22 @@ export function DashboardSidebar() {
     sections: false,
     pages: false,
   });
+
   const subscribers = useQuery(api.newsletter.getUnreadSubscribers);
   const newContactSubmissions = useQuery(api.contact.getNewSubmissionsCount);
+  const unreadOrdersCount = useQuery(api.orders.getUnreadOrdersCount);
+  const markOrdersAsRead = useMutation(api.orders.markAllOrdersAsRead);
+
+  // Mark orders as read when navigating to the orders page
+  useEffect(() => {
+    if (
+      pathname === "/dashboard/orders" &&
+      unreadOrdersCount &&
+      unreadOrdersCount > 0
+    ) {
+      markOrdersAsRead();
+    }
+  }, [pathname, unreadOrdersCount, markOrdersAsRead]);
 
   // Define section types to include badge property
   type SectionWithBadge = {
@@ -134,6 +149,7 @@ export function DashboardSidebar() {
       label: "الطلبات",
       tooltip: "الطلبات",
       href: "/dashboard/orders",
+      badge: unreadOrdersCount || 0,
     },
     {
       icon: CustomersIcon,

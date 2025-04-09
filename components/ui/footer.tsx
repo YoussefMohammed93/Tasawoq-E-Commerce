@@ -9,6 +9,7 @@ const footerLinks = [
       { label: "العروض", href: "/offers" },
       { label: "الفئات", href: "/categories" },
       { label: "المفضلة", href: "/wishlist" },
+      { label: "طلباتي", href: "/orders" },
     ],
   },
   {

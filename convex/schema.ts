@@ -276,13 +276,15 @@ export default defineSchema({
     couponDiscount: v.optional(v.number()),
     stripePaymentId: v.optional(v.string()),
     paymentStatus: v.optional(v.string()), // succeeded, pending, failed
+    isRead: v.optional(v.boolean()),
     createdAt: v.string(),
     updatedAt: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"])
-    .index("by_order_number", ["orderNumber"]),
+    .index("by_order_number", ["orderNumber"])
+    .index("by_read_status", ["isRead"]),
 
   orderItems: defineTable({
     orderId: v.id("orders"),

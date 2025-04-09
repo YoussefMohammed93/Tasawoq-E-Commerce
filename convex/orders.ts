@@ -193,6 +193,7 @@ export const createOrder = mutation({
       couponDiscount: args.couponDiscount,
       stripePaymentId: args.stripePaymentId,
       paymentStatus,
+      isRead: false, // Mark new orders as unread
       createdAt: now,
       updatedAt: now,
     });
@@ -287,3 +288,30 @@ function generateOrderNumber() {
     .padStart(4, "0");
   return `ORD-${timestamp}${random}`;
 }
+
+// Get count of unread orders
+export const getUnreadOrdersCount = query({
+  handler: async (ctx) => {
+    const orders = await ctx.db
+      .query("orders")
+      .filter((q) => q.eq(q.field("isRead"), false))
+      .collect();
+    return orders.length;
+  },
+});
+
+// Mark all orders as read
+export const markAllOrdersAsRead = mutation({
+  handler: async (ctx) => {
+    const unreadOrders = await ctx.db
+      .query("orders")
+      .filter((q) => q.eq(q.field("isRead"), false))
+      .collect();
+
+    await Promise.all(
+      unreadOrders.map((order) => ctx.db.patch(order._id, { isRead: true }))
+    );
+
+    return unreadOrders.length;
+  },
+});

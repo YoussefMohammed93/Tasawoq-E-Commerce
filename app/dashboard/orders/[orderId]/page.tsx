@@ -8,16 +8,10 @@ import { DashboardHeader } from "@/components/dashboard/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
   ArrowLeft,
   Loader2,
-  Package,
-  Truck,
-  CheckCircle,
-  XCircle,
-  Clock,
 } from "lucide-react";
 import {
   Select,
@@ -49,73 +43,6 @@ export default function OrderDetailsPage() {
       </div>
     );
   }
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-yellow-50 text-yellow-700 border-yellow-200"
-          >
-            <Clock className="h-3 w-3 ml-1" />
-            قيد الانتظار
-          </Badge>
-        );
-      case "processing":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-blue-50 text-blue-700 border-blue-200"
-          >
-            <Package className="h-3 w-3 ml-1" />
-            قيد المعالجة
-          </Badge>
-        );
-      case "تم الشحن":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-indigo-50 text-indigo-700 border-indigo-200"
-          >
-            <Truck className="h-3 w-3 ml-1" />
-            تم الشحن
-          </Badge>
-        );
-      case "delivered":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-green-50 text-green-700 border-green-200"
-          >
-            <CheckCircle className="h-3 w-3 ml-1" />
-            تم التوصيل
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-emerald-50 text-emerald-700 border-emerald-200"
-          >
-            <CheckCircle className="h-3 w-3 ml-1" />
-            مكتمل
-          </Badge>
-        );
-      case "cancelled":
-        return (
-          <Badge
-            variant="outline"
-            className="bg-red-50 text-red-700 border-red-200"
-          >
-            <XCircle className="h-3 w-3 ml-1" />
-            ملغي
-          </Badge>
-        );
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
 
   const handleStatusChange = async (newStatus: string) => {
     setIsUpdating(true);
@@ -173,8 +100,7 @@ export default function OrderDetailsPage() {
                   </div>
                   <div className="flex items-end sm:items-center justify-start gap-2">
                     <span className="text-muted-foreground h-fit">الحالة:</span>
-                    <div className="flex sm:items-center flex-col gap-5 sm:flex-row sm:gap-2">
-                      {getStatusBadge(order.status)}
+                    <div>
                       <Select
                         value={order.status}
                         onValueChange={handleStatusChange}
@@ -188,9 +114,7 @@ export default function OrderDetailsPage() {
                           <SelectItem value="processing">
                             قيد المعالجة
                           </SelectItem>
-                          <SelectItem value="تم الشحن">تم الشحن</SelectItem>
                           <SelectItem value="delivered">تم التوصيل</SelectItem>
-                          <SelectItem value="completed">مكتمل</SelectItem>
                           <SelectItem value="cancelled">ملغي</SelectItem>
                         </SelectContent>
                       </Select>

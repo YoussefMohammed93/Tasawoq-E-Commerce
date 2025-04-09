@@ -35,6 +35,9 @@ import {
   Loader2,
   Ticket,
   Download,
+  MessageCircle as MessageCircleIcon,
+  Calendar,
+  Receipt,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -202,6 +205,12 @@ export default function CheckoutPage() {
 
     // Move to payment step
     setActiveStep("payment");
+
+    // Scroll to top of page
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
   };
 
   // Create order mutation
@@ -277,6 +286,14 @@ export default function CheckoutPage() {
     }
   };
 
+  // Scroll to top whenever activeStep changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, [activeStep]);
+
   // Handle payment submission
   const handlePaymentSubmit = async (stripePaymentId?: string) => {
     // If we're already in the confirmation step, don't create another order
@@ -330,8 +347,22 @@ export default function CheckoutPage() {
         removeCoupon();
       }
 
+      // Scroll to top with smooth animation before changing step
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+
       // Move to confirmation step
       setActiveStep("confirmation");
+
+      // Scroll again after state update with smooth animation
+      setTimeout(() => {
+        window.scrollTo({
+          top: 0,
+          behavior: "smooth",
+        });
+      }, 100);
 
       // Show success message
       toast.success("تم تأكيد طلبك بنجاح!");
@@ -646,367 +677,530 @@ export default function CheckoutPage() {
                           </TabsTrigger>
                         </TabsList>
 
-                        <TabsContent value="shipping" className="mt-0">
-                          <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-4">
+                        <TabsContent
+                          value="shipping"
+                          className="mt-0"
+                          dir="rtl"
+                        >
+                          <div className="mb-6">
+                            <div className="flex items-center gap-2 mb-2">
+                              <div className="bg-primary/10 p-2 rounded-full">
+                                <Truck className="h-5 w-5 text-primary" />
+                              </div>
+                              <h2 className="text-xl font-semibold">
+                                معلومات الشحن
+                              </h2>
+                            </div>
+                            <p className="text-muted-foreground text-sm">
+                              يرجى تعبئة بيانات الشحن الخاصة بك بدقة لضمان وصول
+                              طلبك بشكل صحيح
+                            </p>
+                          </div>
+
+                          <form onSubmit={handleSubmit} className="space-y-8">
+                            {/* Personal Information Section */}
+                            <div className="bg-muted/30 rounded-lg p-5 border">
+                              <h3 className="text-base font-medium mb-4 flex items-center gap-2 border-b pb-2">
+                                <User className="h-4 w-4 text-primary" />
+                                المعلومات الشخصية
+                              </h3>
+
+                              <div className="space-y-4">
+                                <div className="relative">
+                                  <Label
+                                    htmlFor="fullName"
+                                    className="text-right block mb-2 font-medium"
+                                  >
+                                    الاسم الكامل{" "}
+                                    <span className="text-destructive">*</span>
+                                  </Label>
+                                  <div className="relative">
+                                    <Input
+                                      id="fullName"
+                                      name="fullName"
+                                      value={formData.fullName}
+                                      onChange={handleInputChange}
+                                      placeholder="أدخل الاسم الكامل"
+                                      required
+                                      className="text-right pr-10 transition-all focus:border-primary bg-white"
+                                    />
+                                    <User className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="relative">
+                                    <Label
+                                      htmlFor="email"
+                                      className="text-right block mb-2 font-medium"
+                                    >
+                                      البريد الإلكتروني{" "}
+                                      <span className="text-destructive">
+                                        *
+                                      </span>
+                                    </Label>
+                                    <div className="relative">
+                                      <Input
+                                        id="email"
+                                        name="email"
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={handleInputChange}
+                                        placeholder="example@example.com"
+                                        required
+                                        className="text-right pr-10 transition-all focus:border-primary bg-white"
+                                      />
+                                      <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  </div>
+
+                                  <div className="relative">
+                                    <Label
+                                      htmlFor="phone"
+                                      className="text-right block mb-2 font-medium"
+                                    >
+                                      رقم الجوال{" "}
+                                      <span className="text-destructive">
+                                        *
+                                      </span>
+                                    </Label>
+                                    <div className="relative">
+                                      <Input
+                                        id="phone"
+                                        name="phone"
+                                        value={formData.phone}
+                                        onChange={handleInputChange}
+                                        placeholder="05xxxxxxxx"
+                                        required
+                                        className="text-right pr-10 transition-all focus:border-primary bg-white"
+                                      />
+                                      <Phone className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Address Information Section */}
+                            <div className="bg-muted/30 rounded-lg p-5 border">
+                              <h3 className="text-base font-medium mb-4 flex items-center gap-2 border-b pb-2">
+                                <MapPin className="h-4 w-4 text-primary" />
+                                عنوان التوصيل
+                              </h3>
+
+                              <div className="space-y-4">
+                                <div className="relative">
+                                  <Label
+                                    htmlFor="country"
+                                    className="text-right block mb-2 font-medium"
+                                  >
+                                    البلد{" "}
+                                    <span className="text-destructive">*</span>
+                                  </Label>
+                                  <div className="relative">
+                                    <Input
+                                      id="country"
+                                      name="country"
+                                      value={formData.country}
+                                      onChange={handleInputChange}
+                                      placeholder="أدخل اسم البلد"
+                                      required
+                                      className="text-right pr-10 transition-all focus:border-primary bg-white"
+                                    />
+                                    <MapPin className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="relative">
+                                    <Label
+                                      htmlFor="city"
+                                      className="text-right block mb-2 font-medium"
+                                    >
+                                      المدينة{" "}
+                                      <span className="text-destructive">
+                                        *
+                                      </span>
+                                    </Label>
+                                    <div className="relative">
+                                      <Input
+                                        id="city"
+                                        name="city"
+                                        value={formData.city}
+                                        onChange={handleInputChange}
+                                        placeholder="أدخل اسم المدينة"
+                                        required
+                                        className="text-right pr-10 transition-all focus:border-primary bg-white"
+                                      />
+                                      <Building className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  </div>
+
+                                  <div className="relative">
+                                    <Label
+                                      htmlFor="district"
+                                      className="text-right block mb-2 font-medium"
+                                    >
+                                      الحي / المنطقة{" "}
+                                      <span className="text-destructive">
+                                        *
+                                      </span>
+                                    </Label>
+                                    <div className="relative">
+                                      <Input
+                                        id="district"
+                                        name="district"
+                                        value={formData.district}
+                                        onChange={handleInputChange}
+                                        placeholder="أدخل اسم الحي أو المنطقة"
+                                        required
+                                        className="text-right pr-10 transition-all focus:border-primary bg-white"
+                                      />
+                                      <MapPinned className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="relative">
+                                    <Label
+                                      htmlFor="street"
+                                      className="text-right block mb-2 font-medium"
+                                    >
+                                      اسم الشارع{" "}
+                                      <span className="text-destructive">
+                                        *
+                                      </span>
+                                    </Label>
+                                    <div className="relative">
+                                      <Input
+                                        id="street"
+                                        name="street"
+                                        value={formData.street}
+                                        onChange={handleInputChange}
+                                        placeholder="أدخل اسم الشارع"
+                                        required
+                                        className="text-right pr-10 transition-all focus:border-primary bg-white"
+                                      />
+                                      <Home className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  </div>
+
+                                  <div className="relative">
+                                    <Label
+                                      htmlFor="postalCode"
+                                      className="text-right block mb-2 font-medium"
+                                    >
+                                      الرمز البريدي
+                                    </Label>
+                                    <div className="relative">
+                                      <Input
+                                        id="postalCode"
+                                        name="postalCode"
+                                        value={formData.postalCode}
+                                        onChange={handleInputChange}
+                                        placeholder="أدخل الرمز البريدي (اختياري)"
+                                        className="text-right pr-10 transition-all focus:border-primary bg-white"
+                                      />
+                                      <MapPinned className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Additional Notes Section */}
+                            <div className="bg-muted/30 rounded-lg p-5 border">
+                              <h3 className="text-base font-medium mb-4 flex items-center gap-2">
+                                <MessageCircleIcon className="h-4 w-4 text-primary" />
+                                ملاحظات إضافية
+                              </h3>
+
                               <div>
-                                <Label
-                                  htmlFor="fullName"
-                                  className="text-right block mb-2"
-                                >
-                                  <User className="inline-block mr-2 h-4 w-4" />
-                                  الاسم الكامل{" "}
-                                  <span className="text-destructive">*</span>
-                                </Label>
-                                <Input
-                                  id="fullName"
-                                  name="fullName"
-                                  value={formData.fullName}
-                                  onChange={handleInputChange}
-                                  placeholder="أدخل الاسم الكامل"
-                                  required
-                                  className="text-right"
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label
-                                    htmlFor="email"
-                                    className="text-right block mb-2"
-                                  >
-                                    <Mail className="inline-block mr-2 h-4 w-4" />
-                                    البريد الإلكتروني{" "}
-                                    <span className="text-destructive">*</span>
-                                  </Label>
-                                  <Input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={handleInputChange}
-                                    placeholder="example@example.com"
-                                    required
-                                    className="text-right"
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label
-                                    htmlFor="phone"
-                                    className="text-right block mb-2"
-                                  >
-                                    <Phone className="inline-block mr-2 h-4 w-4" />
-                                    رقم الجوال{" "}
-                                    <span className="text-destructive">*</span>
-                                  </Label>
-                                  <Input
-                                    id="phone"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleInputChange}
-                                    placeholder="05xxxxxxxx"
-                                    required
-                                    className="text-right"
-                                  />
-                                </div>
-                              </div>
-
-                              <div>
-                                <Label
-                                  htmlFor="country"
-                                  className="text-right block mb-2"
-                                >
-                                  <MapPin className="inline-block mr-2 h-4 w-4" />
-                                  البلد{" "}
-                                  <span className="text-destructive">*</span>
-                                </Label>
-                                <Input
-                                  id="country"
-                                  name="country"
-                                  value={formData.country}
-                                  onChange={handleInputChange}
-                                  placeholder="أدخل اسم البلد"
-                                  required
-                                  className="text-right"
-                                />
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label
-                                    htmlFor="city"
-                                    className="text-right block mb-2"
-                                  >
-                                    <Building className="inline-block mr-2 h-4 w-4" />
-                                    المدينة{" "}
-                                    <span className="text-destructive">*</span>
-                                  </Label>
-                                  <Input
-                                    id="city"
-                                    name="city"
-                                    value={formData.city}
-                                    onChange={handleInputChange}
-                                    placeholder="أدخل اسم المدينة"
-                                    required
-                                    className="text-right"
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label
-                                    htmlFor="district"
-                                    className="text-right block mb-2"
-                                  >
-                                    <MapPinned className="inline-block mr-2 h-4 w-4" />
-                                    الحي / المنطقة{" "}
-                                    <span className="text-destructive">*</span>
-                                  </Label>
-                                  <Input
-                                    id="district"
-                                    name="district"
-                                    value={formData.district}
-                                    onChange={handleInputChange}
-                                    placeholder="أدخل اسم الحي أو المنطقة"
-                                    required
-                                    className="text-right"
-                                  />
-                                </div>
-                              </div>
-
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                  <Label
-                                    htmlFor="street"
-                                    className="text-right block mb-2"
-                                  >
-                                    <Home className="inline-block mr-2 h-4 w-4" />
-                                    اسم الشارع{" "}
-                                    <span className="text-destructive">*</span>
-                                  </Label>
-                                  <Input
-                                    id="street"
-                                    name="street"
-                                    value={formData.street}
-                                    onChange={handleInputChange}
-                                    placeholder="أدخل اسم الشارع"
-                                    required
-                                    className="text-right"
-                                  />
-                                </div>
-
-                                <div>
-                                  <Label
-                                    htmlFor="postalCode"
-                                    className="text-right block mb-2"
-                                  >
-                                    <MapPinned className="inline-block mr-2 h-4 w-4" />
-                                    الرمز البريدي
-                                  </Label>
-                                  <Input
-                                    id="postalCode"
-                                    name="postalCode"
-                                    value={formData.postalCode}
-                                    onChange={handleInputChange}
-                                    placeholder="أدخل الرمز البريدي (اختياري)"
-                                    className="text-right"
-                                  />
-                                </div>
-                              </div>
-
-                              <div>
-                                <Label
-                                  htmlFor="notes"
-                                  className="text-right block mb-2"
-                                >
-                                  ملاحظات إضافية (اختياري)
-                                </Label>
                                 <Textarea
                                   id="notes"
                                   name="notes"
                                   value={formData.notes}
                                   onChange={handleInputChange}
-                                  placeholder="أي ملاحظات إضافية حول طلبك"
-                                  className="text-right min-h-[100px]"
+                                  placeholder="أي ملاحظات إضافية حول طلبك أو تعليمات خاصة بالتوصيل"
+                                  className="text-right min-h-[100px] transition-all focus:border-primary bg-white"
                                 />
                               </div>
                             </div>
 
-                            <div className="flex justify-end">
-                              <Button type="submit" className="gap-2">
+                            <div className="flex justify-between items-center pt-4 border-t">
+                              <Button type="submit">
                                 متابعة للدفع
                                 <ArrowRight className="h-4 w-4" />
                               </Button>
+                              <div className="text-sm text-muted-foreground">
+                                <span className="text-destructive">*</span>{" "}
+                                الحقول المطلوبة
+                              </div>
                             </div>
                           </form>
                         </TabsContent>
 
                         <TabsContent value="payment" className="mt-0" dir="rtl">
-                          <div className="space-y-6">
-                            <div className="bg-muted/50 p-4 rounded-lg border">
-                              <h3 className="font-medium mb-2 flex items-center gap-2">
-                                <MapPin className="h-4 w-4" />
-                                معلومات الشحن
-                              </h3>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                                <div>
-                                  <p className="text-muted-foreground">
-                                    الاسم:
-                                  </p>
-                                  <p className="font-medium">
-                                    {formData.fullName}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">
-                                    رقم الجوال:
-                                  </p>
-                                  <p className="font-medium">
-                                    {formData.phone}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">
-                                    البريد الإلكتروني:
-                                  </p>
-                                  <p className="font-medium">
-                                    {formData.email}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">
-                                    البلد:
-                                  </p>
-                                  <p className="font-medium">
-                                    {formData.country}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">
-                                    المدينة:
-                                  </p>
-                                  <p className="font-medium">{formData.city}</p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">
-                                    الحي / المنطقة:
-                                  </p>
-                                  <p className="font-medium">
-                                    {formData.district}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-muted-foreground">
-                                    الشارع:
-                                  </p>
-                                  <p className="font-medium">
-                                    {formData.street}
-                                  </p>
-                                </div>
-                                {formData.postalCode && (
+                          <div className="space-y-8">
+                            {/* Shipping Information Summary Card - Improved UI */}
+                            <div className="bg-white p-6 rounded-lg border">
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="font-semibold text-lg flex items-center gap-2">
+                                  <div className="bg-primary/10 p-1.5 rounded-full">
+                                    <MapPin className="h-5 w-5 text-primary" />
+                                  </div>
+                                  معلومات الشحن
+                                </h3>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => {
+                                    // Move to shipping step
+                                    setActiveStep("shipping");
+
+                                    // Scroll to top of page
+                                    window.scrollTo({
+                                      top: 0,
+                                      behavior: "smooth",
+                                    });
+                                  }}
+                                >
+                                  تعديل
+                                  <ArrowLeft className="h-3.5 w-3.5" />
+                                </Button>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-sm">
+                                <div className="flex items-start gap-3 p-3 rounded-md bg-muted/65">
+                                  <User className="h-4 w-4 text-primary mt-0.5" />
                                   <div>
-                                    <p className="text-muted-foreground">
-                                      الرمز البريدي:
+                                    <p className="text-muted-foreground text-xs mb-1">
+                                      الاسم
                                     </p>
                                     <p className="font-medium">
-                                      {formData.postalCode}
+                                      {formData.fullName}
                                     </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 p-3 rounded-md bg-muted/65">
+                                  <Phone className="h-4 w-4 text-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">
+                                      رقم الجوال
+                                    </p>
+                                    <p className="font-medium">
+                                      {formData.phone}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 p-3 rounded-md bg-muted/65">
+                                  <Mail className="h-4 w-4 text-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">
+                                      البريد الإلكتروني
+                                    </p>
+                                    <p className="font-medium">
+                                      {formData.email}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 p-3 rounded-md bg-muted/65">
+                                  <MapPin className="h-4 w-4 text-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">
+                                      البلد
+                                    </p>
+                                    <p className="font-medium">
+                                      {formData.country}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 p-3 rounded-md bg-muted/65">
+                                  <Building className="h-4 w-4 text-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">
+                                      المدينة
+                                    </p>
+                                    <p className="font-medium">
+                                      {formData.city}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 p-3 rounded-md bg-muted/65">
+                                  <MapPinned className="h-4 w-4 text-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">
+                                      الحي / المنطقة
+                                    </p>
+                                    <p className="font-medium">
+                                      {formData.district}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-start gap-3 p-3 rounded-md bg-muted/65">
+                                  <Home className="h-4 w-4 text-primary mt-0.5" />
+                                  <div>
+                                    <p className="text-muted-foreground text-xs mb-1">
+                                      الشارع
+                                    </p>
+                                    <p className="font-medium">
+                                      {formData.street}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                {formData.postalCode && (
+                                  <div className="flex items-start gap-3 p-3 rounded-md bg-muted/65">
+                                    <Ticket className="h-4 w-4 text-primary mt-0.5" />
+                                    <div>
+                                      <p className="text-muted-foreground text-xs mb-1">
+                                        الرمز البريدي
+                                      </p>
+                                      <p className="font-medium">
+                                        {formData.postalCode}
+                                      </p>
+                                    </div>
                                   </div>
                                 )}
                               </div>
-                              <Button
-                                variant="link"
-                                className="px-0 h-auto text-blue-500 underline"
-                                onClick={() => setActiveStep("shipping")}
-                              >
-                                تعديل
-                              </Button>
                             </div>
 
-                            <div className="space-y-4">
-                              <h3 className="font-medium">اختر طريقة الدفع</h3>
+                            {/* Payment Methods Section - Improved UI */}
+                            <div className="bg-white p-6 rounded-lg border">
+                              <h3 className="font-semibold text-lg flex items-center gap-2 mb-5">
+                                <div className="bg-primary/10 p-1.5 rounded-full">
+                                  <CreditCard className="h-5 w-5 text-primary" />
+                                </div>
+                                اختر طريقة الدفع
+                              </h3>
 
                               <RadioGroup
                                 value={paymentMethod}
                                 onValueChange={setPaymentMethod}
-                                className="space-y-3"
+                                className="space-y-4"
                               >
                                 <div
-                                  className={`border rounded-lg p-4 ${paymentMethod === "cash_on_delivery" ? "bg-primary/5 border-primary" : "bg-card"} flex items-center gap-3`}
+                                  className={`border-2 rounded-lg p-4 transition-all ${
+                                    paymentMethod === "cash_on_delivery"
+                                      ? "bg-primary/5 border-primary"
+                                      : "bg-card border-muted hover:border-muted-foreground/20"
+                                  }
+                                    flex items-center gap-4`}
                                 >
-                                  <RadioGroupItem
-                                    value="cash_on_delivery"
-                                    id="cash_on_delivery"
-                                  />
+                                  <div className="flex items-center justify-center">
+                                    <RadioGroupItem
+                                      value="cash_on_delivery"
+                                      id="cash_on_delivery"
+                                      className="h-5 w-5"
+                                    />
+                                  </div>
+
                                   <div className="flex-1">
                                     <label
                                       htmlFor="cash_on_delivery"
-                                      className="flex flex-col cursor-pointer"
+                                      className="flex items-start gap-3 cursor-pointer"
                                     >
-                                      <span className="font-medium">
-                                        الدفع عند الاستلام
-                                      </span>
-                                      <span className="text-sm text-muted-foreground">
-                                        ادفع نقدً عند استلام طلبك
-                                      </span>
+                                      <div className="bg-muted/50 p-2 rounded-full">
+                                        <ShoppingBag className="h-5 w-5 text-primary" />
+                                      </div>
+                                      <div>
+                                        <span className="font-medium block mb-1">
+                                          الدفع عند الاستلام
+                                        </span>
+                                        <span className="text-sm text-muted-foreground block">
+                                          ادفع نقدًا عند استلام طلبك
+                                        </span>
+                                      </div>
                                     </label>
                                   </div>
                                 </div>
 
                                 <div
-                                  className={`border rounded-lg p-4 ${paymentMethod === "stripe" ? "bg-primary/5 border-primary" : "bg-card"} flex items-center gap-3`}
+                                  className={`border-2 rounded-lg p-4 transition-all ${
+                                    paymentMethod === "stripe"
+                                      ? "bg-primary/5 border-primary"
+                                      : "bg-card border-muted hover:border-muted-foreground/20"
+                                  }
+                                    flex items-center gap-4`}
                                 >
-                                  <RadioGroupItem value="stripe" id="stripe" />
+                                  <div className="flex items-center justify-center">
+                                    <RadioGroupItem
+                                      value="stripe"
+                                      id="stripe"
+                                      className="h-5 w-5"
+                                    />
+                                  </div>
+
                                   <div className="flex-1">
                                     <label
                                       htmlFor="stripe"
-                                      className="flex flex-col cursor-pointer"
+                                      className="flex items-start gap-3 cursor-pointer"
                                     >
-                                      <span className="font-medium">
-                                        بطاقة ائتمان
-                                      </span>
-                                      <span className="text-sm text-muted-foreground">
-                                        ادفع باستخدام بطاقة الائتمان أو مدى
-                                      </span>
+                                      <div className="bg-muted/50 p-2 rounded-full">
+                                        <CreditCard className="h-5 w-5 text-primary" />
+                                      </div>
+                                      <div>
+                                        <span className="font-medium block mb-1">
+                                          بطاقة ائتمان
+                                        </span>
+                                        <span className="text-sm text-muted-foreground block">
+                                          ادفع باستخدام بطاقة الائتمان أو مدى
+                                        </span>
+                                      </div>
                                     </label>
                                   </div>
                                 </div>
                               </RadioGroup>
 
+                              {/* Stripe Payment Form - Improved UI */}
                               {paymentMethod === "stripe" && (
-                                <div className="mt-4 border rounded-lg p-4">
-                                  <h4 className="font-medium mb-4">
+                                <div className="mt-6 border rounded-lg p-6 bg-white">
+                                  <h4 className="font-medium mb-5 flex items-center gap-2">
+                                    <div className="bg-primary/10 p-1 rounded-full">
+                                      <CreditCard className="h-4 w-4 text-primary" />
+                                    </div>
                                     تفاصيل الدفع
                                   </h4>
+
                                   {stripeLoading ? (
-                                    <div className="flex items-center justify-center py-8">
-                                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                                      <span className="mr-2">
+                                    <div className="flex flex-col items-center justify-center py-10 bg-muted/20 rounded-lg">
+                                      <Loader2 className="h-8 w-8 animate-spin text-primary mb-3" />
+                                      <span className="text-muted-foreground">
                                         جاري تجهيز بوابة الدفع...
                                       </span>
                                     </div>
                                   ) : stripeClientSecret ? (
-                                    <StripeProvider
-                                      clientSecret={stripeClientSecret}
-                                    >
-                                      <StripePaymentForm
+                                    <div className="bg-muted/10 p-4 rounded-lg">
+                                      <StripeProvider
                                         clientSecret={stripeClientSecret}
-                                        amount={total}
-                                        onSuccess={handleStripePaymentSuccess}
-                                        onError={handleStripePaymentError}
-                                      />
-                                    </StripeProvider>
+                                      >
+                                        <StripePaymentForm
+                                          clientSecret={stripeClientSecret}
+                                          amount={total}
+                                          onSuccess={handleStripePaymentSuccess}
+                                          onError={handleStripePaymentError}
+                                        />
+                                      </StripeProvider>
+                                    </div>
                                   ) : (
-                                    <div className="text-center py-4">
-                                      <p className="text-red-500">
+                                    <div className="text-center py-8 bg-red-50 rounded-lg">
+                                      <p className="text-red-600 mb-3">
                                         حدث خطأ أثناء تجهيز بوابة الدفع
                                       </p>
                                       <Button
                                         variant="outline"
                                         size="sm"
                                         onClick={createPaymentIntent}
-                                        className="mt-2"
+                                        className="gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
                                       >
+                                        <Loader2 className="h-3.5 w-3.5" />
                                         إعادة المحاولة
                                       </Button>
                                     </div>
@@ -1015,11 +1209,21 @@ export default function CheckoutPage() {
                               )}
                             </div>
 
-                            <div className="flex flex-row-reverse justify-between">
+                            {/* Navigation Buttons - Improved UI */}
+                            <div className="flex flex-row-reverse justify-between pt-4 border-t">
                               <Button
                                 variant="outline"
-                                onClick={() => setActiveStep("shipping")}
-                                className="gap-2"
+                                onClick={() => {
+                                  // Move to shipping step
+                                  setActiveStep("shipping");
+
+                                  // Scroll to top of page
+                                  window.scrollTo({
+                                    top: 0,
+                                    behavior: "smooth",
+                                  });
+                                }}
+                                className="gap-2 hover:bg-muted/50"
                               >
                                 العودة
                                 <ArrowLeft className="h-4 w-4" />
@@ -1027,9 +1231,20 @@ export default function CheckoutPage() {
 
                               {paymentMethod === "cash_on_delivery" && (
                                 <Button
-                                  onClick={() => handlePaymentSubmit()}
+                                  onClick={() => {
+                                    // Scroll to top with smooth animation
+                                    window.scrollTo({
+                                      top: 0,
+                                      behavior: "smooth",
+                                    });
+
+                                    // Then handle payment submission
+                                    setTimeout(() => {
+                                      handlePaymentSubmit();
+                                    }, 100);
+                                  }}
                                   disabled={isSubmitting}
-                                  className="gap-2"
+                                  className="gap-2 bg-primary hover:bg-primary/90"
                                 >
                                   {isSubmitting ? (
                                     <>
@@ -1038,8 +1253,8 @@ export default function CheckoutPage() {
                                     </>
                                   ) : (
                                     <>
-                                      <ArrowRight className="h-4 w-4" />
                                       تأكيد الطلب
+                                      <ArrowRight className="h-4 w-4" />
                                     </>
                                   )}
                                 </Button>
@@ -1049,171 +1264,305 @@ export default function CheckoutPage() {
                         </TabsContent>
 
                         <TabsContent value="confirmation" className="mt-0">
-                          <div className="text-center pb-8 space-y-6">
-                            <div className="mx-auto bg-primary/10 rounded-full p-6 w-24 h-24 flex items-center justify-center">
-                              <CheckCircle className="h-12 w-12 text-primary" />
+                          <div className="space-y-8">
+                            {/* Success Animation with Confetti Effect */}
+                            <div className="relative">
+                              <div className="absolute inset-0 overflow-hidden">
+                                <div className="absolute -top-10 left-1/4 w-2 h-2 bg-primary/60 rounded-full animate-confetti-1"></div>
+                                <div className="absolute -top-10 left-1/3 w-3 h-3 bg-green-400/60 rounded-full animate-confetti-2"></div>
+                                <div className="absolute -top-10 left-1/2 w-2 h-2 bg-yellow-400/60 rounded-full animate-confetti-3"></div>
+                                <div className="absolute -top-10 left-2/3 w-3 h-3 bg-primary/60 rounded-full animate-confetti-2"></div>
+                                <div className="absolute -top-10 left-3/4 w-2 h-2 bg-green-400/60 rounded-full animate-confetti-1"></div>
+                              </div>
+
+                              <div className="text-center">
+                                <div className="mx-auto bg-gradient-to-br from-primary/20 to-primary/5 rounded-full p-6 w-28 h-28 flex items-center justify-center shadow-lg animate-bounce-slow">
+                                  <CheckCircle className="h-14 w-14 text-primary animate-pulse-slow" />
+                                </div>
+                              </div>
                             </div>
 
-                            <div>
-                              <h2 className="text-2xl font-bold mb-2">
+                            {/* Success Message */}
+                            <div className="text-center">
+                              <h2 className="text-2xl md:text-3xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/80">
                                 تم تأكيد طلبك بنجاح!
                               </h2>
-                              <p className="text-muted-foreground max-w-md mx-auto">
+                              <p className="text-muted-foreground max-w-md mx-auto text-base">
                                 شكراً لك على طلبك. سيتم التواصل معك قريباً
                                 لتأكيد التفاصيل وإتمام عملية الشحن.
                               </p>
                             </div>
 
+                            {/* Order Status Timeline */}
+                            <div className="max-w-2xl mx-auto px-4">
+                              <div className="flex justify-between items-center mb-2">
+                                <div className="text-center">
+                                  <div className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-1">
+                                    <CheckCircle className="h-5 w-5" />
+                                  </div>
+                                  <span className="text-xs font-medium block">
+                                    تم التأكيد
+                                  </span>
+                                </div>
+                                <div className="flex-1 h-1 bg-primary/20 mx-2 relative">
+                                  <div className="absolute inset-0 bg-primary w-0 animate-progress-25"></div>
+                                </div>
+                                <div className="text-center">
+                                  <div className="w-10 h-10 bg-muted text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-1">
+                                    <Truck className="h-5 w-5" />
+                                  </div>
+                                  <span className="text-xs font-medium block">
+                                    قيد التجهيز
+                                  </span>
+                                </div>
+                                <div className="flex-1 h-1 bg-muted mx-2"></div>
+                                <div className="text-center">
+                                  <div className="w-10 h-10 bg-muted text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-1">
+                                    <MapPin className="h-5 w-5" />
+                                  </div>
+                                  <span className="text-xs font-medium block">
+                                    قيد الشحن
+                                  </span>
+                                </div>
+                                <div className="flex-1 h-1 bg-muted mx-2"></div>
+                                <div className="text-center">
+                                  <div className="w-10 h-10 bg-muted text-muted-foreground rounded-full flex items-center justify-center mx-auto mb-1">
+                                    <ShoppingBag className="h-5 w-5" />
+                                  </div>
+                                  <span className="text-xs font-medium block">
+                                    تم التسليم
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Order Details Card - Enhanced Design */}
                             <div
-                              className="p-4 rounded-lg border max-w-md mx-auto text-right relative overflow-hidden"
-                              style={{ backgroundColor: "#f8f8f8" }}
+                              className="max-w-2xl mx-auto bg-white rounded-xl overflow-hidden border"
                               dir="rtl"
                             >
-                              <div
-                                className="absolute top-0 left-0 w-24 h-24 rounded-br-full -translate-x-8 -translate-y-8"
-                                style={{
-                                  backgroundColor: "rgba(0, 0, 0, 0.05)",
-                                }}
-                              ></div>
-                              <div
-                                className="absolute bottom-0 right-0 w-32 h-32 rounded-tl-full translate-x-12 translate-y-12"
-                                style={{
-                                  backgroundColor: "rgba(0, 0, 0, 0.03)",
-                                }}
-                              ></div>
-                              <div className="relative z-10">
-                                <h3
-                                  className="font-medium mb-2 flex items-center justify-between"
-                                  style={{ color: "#000000" }}
-                                >
-                                  <span>تفاصيل الطلب</span>
-                                  <div
-                                    className="flex items-center gap-1 text-xs"
-                                    style={{ color: "#666666" }}
-                                  >
-                                    <span>
-                                      {new Date().toLocaleDateString("ar-SA")}
-                                    </span>
+                              {/* Card Header with Gradient */}
+                              <div className="bg-gradient-to-r from-primary/10 to-primary/5 p-5 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-32 h-32 rounded-br-full -translate-x-16 -translate-y-16 bg-primary/5"></div>
+                                <div className="absolute bottom-0 right-0 w-32 h-32 rounded-tl-full translate-x-16 translate-y-16 bg-primary/5"></div>
+
+                                <div className="relative z-10 flex items-center justify-between">
+                                  <div>
+                                    <h3 className="text-xl font-bold text-primary mb-1">
+                                      تفاصيل الطلب
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">
+                                      شكراً لثقتك بنا ونتمنى أن تكون راضياً عن
+                                      تجربة التسوق معنا.
+                                    </p>
                                   </div>
-                                </h3>
-                                <div
-                                  className="space-y-2 text-sm"
-                                  style={{ color: "#333333" }}
-                                >
-                                  <div className="flex justify-between">
-                                    <span style={{ color: "#666666" }}>
-                                      رقم الطلب:
-                                    </span>
-                                    <span className="font-medium">
+                                  <div className="bg-white/80 backdrop-blur-sm px-4 py-2 rounded-lg">
+                                    <div className="text-xs text-muted-foreground mb-1">
+                                      رقم الطلب
+                                    </div>
+                                    <div className="font-bold text-primary">
                                       {orderDetails?.orderNumber ||
                                         "#ORD-000000"}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span style={{ color: "#666666" }}>
-                                      تاريخ الطلب:
-                                    </span>
-                                    <span className="font-medium">
-                                      {new Date().toLocaleDateString("ar-SA")}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span style={{ color: "#666666" }}>
-                                      طريقة الدفع:
-                                    </span>
-                                    <span className="font-medium">
-                                      {paymentMethod === "stripe"
-                                        ? "بطاقة ائتمان"
-                                        : "الدفع عند الاستلام"}
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span style={{ color: "#666666" }}>
-                                      المجموع الفرعي:
-                                    </span>
-                                    <span className="font-medium">
-                                      {orderDetails?.orderSubtotal?.toFixed(
-                                        2
-                                      ) || "0.00"}{" "}
-                                      ر.س
-                                    </span>
-                                  </div>
-                                  <div className="flex justify-between">
-                                    <span style={{ color: "#666666" }}>
-                                      الشحن:
-                                    </span>
-                                    <span className="font-medium">
-                                      {orderDetails?.orderShipping === 0
-                                        ? "مجاني"
-                                        : `${orderDetails?.orderShipping?.toFixed(2) || "0.00"} ر.س`}
-                                    </span>
-                                  </div>
-                                  {(activeStep === "confirmation"
-                                    ? (orderDetails?.orderDiscount ?? 0) > 0
-                                    : (discountAmount ?? 0) > 0) && (
-                                    <div className="flex justify-between text-green-600">
-                                      <span className="flex items-center gap-1">
-                                        <Ticket className="h-4 w-4" />
-                                        خصم{" "}
-                                        {activeStep !== "confirmation" &&
-                                          coupon &&
-                                          `(${coupon.discountPercentage}%)`}
-                                      </span>
-                                      <span>
-                                        -{" "}
-                                        {activeStep === "confirmation"
-                                          ? (
-                                              orderDetails?.orderDiscount ?? 0
-                                            ).toFixed(2)
-                                          : (discountAmount ?? 0).toFixed(
-                                              2
-                                            )}{" "}
-                                        ر.س
-                                      </span>
                                     </div>
-                                  )}
-                                  <div className="flex justify-between font-bold">
-                                    <span style={{ color: "#666666" }}>
-                                      الإجمالي:
-                                    </span>
-                                    <span
-                                      className="font-medium"
-                                      style={{ color: "#000000" }}
-                                    >
-                                      {orderDetails?.orderTotal?.toFixed(2) ||
-                                        "0.00"}{" "}
-                                      ر.س
-                                    </span>
                                   </div>
                                 </div>
                               </div>
 
-                              <div className="pt-4 flex flex-wrap gap-3 justify-center">
-                                <Button asChild>
-                                  <Link href="/products" className="gap-2">
-                                    <ShoppingBag className="h-4 w-4" />
+                              {/* Order Information */}
+                              <div className="p-6 space-y-6">
+                                {/* Date and Payment Method */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="bg-muted rounded-lg p-4 flex items-start gap-3">
+                                    <div className="bg-primary/10 p-2 rounded-full">
+                                      <CreditCard className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                      <div className="text-sm text-muted-foreground mb-1">
+                                        طريقة الدفع
+                                      </div>
+                                      <div className="font-medium">
+                                        {paymentMethod === "stripe"
+                                          ? "بطاقة ائتمان"
+                                          : "الدفع عند الاستلام"}
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="bg-muted rounded-lg p-4 flex items-start gap-3">
+                                    <div className="bg-primary/10 p-2 rounded-full">
+                                      <Calendar className="h-5 w-5 text-primary" />
+                                    </div>
+                                    <div>
+                                      <div className="text-sm text-muted-foreground mb-1">
+                                        تاريخ الطلب
+                                      </div>
+                                      <div className="font-medium">
+                                        {new Date().toLocaleDateString("ar-SA")}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Order Summary */}
+                                <div>
+                                  <h4 className="text-base font-semibold mb-3 flex items-center gap-2">
+                                    <Receipt className="h-4 w-4 text-primary" />
+                                    ملخص الطلب
+                                  </h4>
+
+                                  <div className="bg-muted rounded-lg p-4 space-y-3">
+                                    <div className="flex justify-between items-center pb-2 border-b border-dashed border-muted">
+                                      <span className="text-muted-foreground">
+                                        المجموع الفرعي
+                                      </span>
+                                      <span className="font-medium">
+                                        {orderDetails?.orderSubtotal?.toFixed(
+                                          2
+                                        ) || "0.00"}{" "}
+                                        ر.س
+                                      </span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center pb-2 border-b border-dashed border-muted">
+                                      <span className="text-muted-foreground">
+                                        الشحن
+                                      </span>
+                                      <span className="font-medium">
+                                        {orderDetails?.orderShipping === 0 ? (
+                                          <span className="text-green-600">
+                                            مجاني
+                                          </span>
+                                        ) : (
+                                          `${orderDetails?.orderShipping?.toFixed(2) || "0.00"} ر.س`
+                                        )}
+                                      </span>
+                                    </div>
+
+                                    {(activeStep === "confirmation"
+                                      ? (orderDetails?.orderDiscount ?? 0) > 0
+                                      : (discountAmount ?? 0) > 0) && (
+                                      <div className="flex justify-between items-center pb-2 border-b border-dashed border-muted">
+                                        <span className="flex items-center gap-1 text-green-600">
+                                          <Ticket className="h-4 w-4" />
+                                          خصم{" "}
+                                          {activeStep !== "confirmation" &&
+                                            coupon &&
+                                            `(${coupon.discountPercentage}%)`}
+                                        </span>
+                                        <span className="font-medium text-green-600">
+                                          -{" "}
+                                          {activeStep === "confirmation"
+                                            ? (
+                                                orderDetails?.orderDiscount ?? 0
+                                              ).toFixed(2)
+                                            : (discountAmount ?? 0).toFixed(
+                                                2
+                                              )}{" "}
+                                          ر.س
+                                        </span>
+                                      </div>
+                                    )}
+
+                                    <div className="flex justify-between items-center">
+                                      <span className="font-bold">
+                                        الإجمالي
+                                      </span>
+                                      <span className="font-bold text-lg text-primary">
+                                        {orderDetails?.orderTotal?.toFixed(2) ||
+                                          "0.00"}{" "}
+                                        ر.س
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Shipping Address Summary */}
+                                <div>
+                                  <h4 className="text-base font-semibold mb-3 flex items-center gap-2">
+                                    <MapPin className="h-4 w-4 text-primary" />
+                                    عنوان الشحن
+                                  </h4>
+
+                                  <div className="bg-muted rounded-lg p-4">
+                                    <div className="flex items-start gap-3">
+                                      <div className="bg-primary/10 p-2 rounded-full">
+                                        <User className="h-5 w-5 text-primary" />
+                                      </div>
+                                      <div className="space-y-1">
+                                        <div className="font-medium">
+                                          {formData.fullName}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                          {formData.phone}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground">
+                                          {formData.email}
+                                        </div>
+                                        <div className="text-sm mt-2">
+                                          {formData.street}، {formData.district}
+                                          ، {formData.city}، {formData.country}
+                                          {formData.postalCode && (
+                                            <span>
+                                              {" "}
+                                              ({formData.postalCode})
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Card Footer with Actions */}
+                              <div className="border-t border-muted p-6 flex flex-wrap gap-3 justify-center">
+                                <Button asChild size="lg">
+                                  <Link href="/products">
+                                    <ShoppingBag className="h-5 w-5" />
                                     متابعة التسوق
                                   </Link>
                                 </Button>
+
                                 <Button
                                   variant="outline"
-                                  className="gap-2"
+                                  size="lg"
                                   onClick={handleDownloadOrderCard}
                                   disabled={isDownloading}
                                 >
                                   {isDownloading ? (
                                     <>
                                       جاري التحميل...
-                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      <Loader2 className="h-5 w-5 animate-spin" />
                                     </>
                                   ) : (
                                     <>
                                       تحميل الإيصال
-                                      <Download className="h-4 w-4" />
+                                      <Download className="h-5 w-5" />
                                     </>
                                   )}
                                 </Button>
                               </div>
+                            </div>
+
+                            {/* Customer Support Section */}
+                            <div className="max-w-2xl mx-auto bg-muted/20 rounded-xl text-center">
+                              <h4 className="font-medium mb-2">
+                                هل تحتاج إلى مساعدة؟
+                              </h4>
+                              <p className="text-sm text-muted-foreground mb-4">
+                                فريق خدمة العملاء متاح للمساعدة في أي استفسارات
+                                تتعلق بطلبك
+                              </p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2"
+                              >
+                                <Link href="/contact" className="flex gap-1">
+                                  <MessageCircleIcon className="h-4 w-4" />
+                                  تواصل معنا
+                                </Link>
+                              </Button>
                             </div>
                           </div>
                         </TabsContent>
@@ -1368,4 +1717,3 @@ export default function CheckoutPage() {
     </>
   );
 }
-

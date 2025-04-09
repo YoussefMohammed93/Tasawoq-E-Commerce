@@ -15,7 +15,7 @@ import { usePathname } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingCart, Heart, Search, Menu } from "lucide-react";
+import { ShoppingCart, Heart, Search, Menu, Package } from "lucide-react";
 import { SearchDialog } from "@/components/search-dialog";
 import { useCart } from "@/contexts/cart-context";
 
@@ -112,6 +112,21 @@ export function Header() {
               variant="ghost"
               size="icon"
               className={cn(
+                "hidden md:flex transition-colors hover:bg-primary/10",
+                pathname === "/orders" &&
+                  "text-primary bg-primary/10 hover:bg-primary/10"
+              )}
+              asChild
+            >
+              <Link href="/orders" className="relative">
+                <Package className="h-5 w-5" />
+                <span className="sr-only">طلباتي</span>
+              </Link>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
                 "transition-colors hover:bg-primary/10",
                 pathname === "/cart" &&
                   "text-primary bg-primary/10 hover:bg-primary/10"
@@ -177,7 +192,21 @@ export function Header() {
                 </div>
               </div>
               <div className="border-t p-4">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 mb-2">
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full gap-2",
+                      pathname === "/orders" &&
+                        "bg-primary/10 text-primary border-primary"
+                    )}
+                    asChild
+                  >
+                    <Link href="/orders" onClick={() => setIsOpen(false)}>
+                      <Package className="h-4 w-4" />
+                      طلباتي
+                    </Link>
+                  </Button>
                   <Button
                     variant="outline"
                     className={cn(
