@@ -1,14 +1,13 @@
 "use client";
 
 import {
+  Eye as EyeIcon,
   PackageIcon,
   ClockIcon,
   XCircleIcon,
   CheckCircleIcon,
   SearchIcon,
-  FilterIcon,
-  ArrowUpIcon,
-  EyeIcon,
+  ArrowUpDown,
 } from "lucide-react";
 import {
   Select,
@@ -17,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -31,86 +30,117 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Card, CardContent } from "@/components/ui/card";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import Link from "next/link";
 
-const generateOrders = (count: number) => {
-  const statuses = ["completed", "processing", "cancelled", "pending"];
-  const customers = [
-    "أحمد محمد",
-    "سارة أحمد",
-    "خالد عبدالله",
-    "فاطمة علي",
-    "عمر حسن",
-    "ليلى محمود",
-    "يوسف كمال",
-    "نور الدين",
-    "ريم سعيد",
-    "زياد عمر",
-  ];
-
-  return Array.from({ length: count }, (_, i) => ({
-    id: `ORD-${String(i + 1).padStart(3, "0")}`,
-    customer: customers[Math.floor(Math.random() * customers.length)],
-    date: new Date(
-      Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
-    )
-      .toISOString()
-      .split("T")[0],
-    total: `${Math.floor(Math.random() * 5000 + 500)} ر.س`,
-    status: statuses[Math.floor(Math.random() * statuses.length)],
-    items: Math.floor(Math.random() * 5 + 1),
-  }));
-};
-
-const orders = generateOrders(50);
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "text-green-500 bg-green-50";
-    case "processing":
-      return "text-blue-500 bg-blue-50";
-    case "cancelled":
-      return "text-red-500 bg-red-50";
-    case "pending":
-      return "text-yellow-500 bg-yellow-50";
-    default:
-      return "text-gray-500 bg-gray-50";
-  }
-};
-
-const getStatusText = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "مكتمل";
-    case "processing":
-      return "قيد المعالجة";
-    case "cancelled":
-      return "ملغي";
-    case "pending":
-      return "معلق";
-    default:
-      return status;
-  }
-};
+const ITEMS_PER_PAGE = 10;
 
 export default function OrdersPage() {
-  const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
-  const ITEMS_PER_PAGE = 10;
-
-  const filteredOrders = orders.filter((order) => {
-    const matchesSearch =
-      order.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      statusFilter === "all" || order.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [sortConfig, setSortConfig] = useState({
+    key: "createdAt",
+    direction: "desc",
   });
 
+  const orders = useQuery(api.orders.getAllOrders);
+
+  // Calculate order statistics
+  const orderStats = useMemo(() => {
+    if (!orders) return { total: 0, completed: 0, processing: 0, cancelled: 0 };
+    return orders.reduce(
+      (acc, order) => {
+        acc.total++;
+        switch (order.status) {
+          case "completed":
+          case "delivered":
+            acc.completed++;
+            break;
+          case "processing":
+            acc.processing++;
+            break;
+          case "cancelled":
+            acc.cancelled++;
+            break;
+        }
+        return acc;
+      },
+      { total: 0, completed: 0, processing: 0, cancelled: 0 }
+    );
+  }, [orders]);
+
+  const filteredOrders = useMemo(() => {
+    return (orders || [])
+      .filter((order) => {
+        const matchesSearch =
+          order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          order.fullName.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus =
+          statusFilter === "all" || order.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      })
+      .sort((a, b) => {
+        const aValue = sortConfig.key === "createdAt" ? a.createdAt : a.total;
+        const bValue = sortConfig.key === "createdAt" ? b.createdAt : b.total;
+        if (sortConfig.direction === "asc") {
+          return aValue > bValue ? 1 : -1;
+        } else {
+          return aValue < bValue ? 1 : -1;
+        }
+      });
+  }, [orders, searchQuery, statusFilter, sortConfig]);
+
+  const handleSort = (key: "createdAt" | "total") => {
+    setSortConfig((current) => ({
+      key,
+      direction:
+        current.key === key && current.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "pending":
+        return "bg-yellow-50 text-yellow-700";
+      case "processing":
+        return "bg-blue-50 text-blue-700";
+      case "تم الشحن":
+        return "bg-indigo-50 text-indigo-700";
+      case "delivered":
+        return "bg-green-50 text-green-700";
+      case "completed":
+        return "bg-emerald-50 text-emerald-700";
+      case "cancelled":
+        return "bg-red-50 text-red-700";
+      default:
+        return "bg-gray-500/10 text-gray-700";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "completed":
+        return "مكتمل";
+      case "processing":
+        return "قيد المعالجة";
+      case "pending":
+        return "قيد الانتظار";
+      case "تم الشحن":
+        return "تم الشحن";
+      case "delivered":
+        return "تم التوصيل";
+      case "cancelled":
+        return "ملغي";
+      default:
+        return status;
+    }
+  };
+
+  // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE);
-  const startIndex = Math.max(0, (currentPage - 1) * ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, filteredOrders.length);
   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
@@ -150,7 +180,7 @@ export default function OrdersPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">إجمالي الطلبات</p>
-                <p className="text-2xl font-bold">156</p>
+                <p className="text-2xl font-bold">{orderStats.total}</p>
               </div>
             </div>
           </CardContent>
@@ -165,7 +195,7 @@ export default function OrdersPage() {
                 <p className="text-sm text-muted-foreground">
                   الطلبات المكتملة
                 </p>
-                <p className="text-2xl font-bold">124</p>
+                <p className="text-2xl font-bold">{orderStats.completed}</p>
               </div>
             </div>
           </CardContent>
@@ -178,7 +208,7 @@ export default function OrdersPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">قيد المعالجة</p>
-                <p className="text-2xl font-bold">22</p>
+                <p className="text-2xl font-bold">{orderStats.processing}</p>
               </div>
             </div>
           </CardContent>
@@ -191,7 +221,7 @@ export default function OrdersPage() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">الطلبات الملغاة</p>
-                <p className="text-2xl font-bold">10</p>
+                <p className="text-2xl font-bold">{orderStats.cancelled}</p>
               </div>
             </div>
           </CardContent>
@@ -212,13 +242,21 @@ export default function OrdersPage() {
           />
         </div>
         <div className="md:col-span-4 flex gap-2">
-          <Button variant="outline" className="gap-2 flex-1">
-            <FilterIcon className="h-4 w-4" />
-            تصفية
+          <Button
+            variant="outline"
+            className="gap-2 flex-1"
+            onClick={() => handleSort("createdAt")}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            ترتيب حسب التاريخ
           </Button>
-          <Button variant="outline" className="gap-2 flex-1">
-            <ArrowUpIcon className="h-4 w-4" />
-            ترتيب
+          <Button
+            variant="outline"
+            className="gap-2 flex-1"
+            onClick={() => handleSort("total")}
+          >
+            <ArrowUpDown className="h-4 w-4" />
+            ترتيب حسب المبلغ
           </Button>
         </div>
         <div className="md:col-span-2">
@@ -236,8 +274,10 @@ export default function OrdersPage() {
             <SelectContent className="text-right">
               <SelectItem value="all">كل الحالات</SelectItem>
               <SelectItem value="completed">مكتمل</SelectItem>
+              <SelectItem value="delivered">تم التوصيل</SelectItem>
               <SelectItem value="processing">قيد المعالجة</SelectItem>
-              <SelectItem value="pending">معلق</SelectItem>
+              <SelectItem value="تم الشحن">تم الشحن</SelectItem>
+              <SelectItem value="pending">قيد الانتظار</SelectItem>
               <SelectItem value="cancelled">ملغي</SelectItem>
             </SelectContent>
           </Select>
@@ -252,7 +292,6 @@ export default function OrdersPage() {
                 <th className="text-right py-4 px-6 font-medium">رقم الطلب</th>
                 <th className="text-right py-4 px-6 font-medium">العميل</th>
                 <th className="text-right py-4 px-6 font-medium">التاريخ</th>
-                <th className="text-right py-4 px-6 font-medium">المنتجات</th>
                 <th className="text-right py-4 px-6 font-medium">المبلغ</th>
                 <th className="text-right py-4 px-6 font-medium">الحالة</th>
                 <th className="text-right py-4 px-6 font-medium">الإجراءات</th>
@@ -260,12 +299,16 @@ export default function OrdersPage() {
             </thead>
             <tbody>
               {paginatedOrders.map((order) => (
-                <tr key={order.id} className="border-b last:border-b-0">
-                  <td className="py-4 px-6">{order.id}</td>
-                  <td className="py-4 px-6">{order.customer}</td>
-                  <td className="py-4 px-6">{order.date}</td>
-                  <td className="py-4 px-6">{order.items} منتجات</td>
-                  <td className="py-4 px-6">{order.total}</td>
+                <tr
+                  key={order._id}
+                  className="border-b last:border-b-0 hover:bg-muted/50 transition-colors"
+                >
+                  <td className="py-4 px-6">{order.orderNumber}</td>
+                  <td className="py-4 px-6">{order.fullName}</td>
+                  <td className="py-4 px-6">
+                    {new Date(order.createdAt).toLocaleDateString("ar-SA")}
+                  </td>
+                  <td className="py-4 px-6">{order.total.toFixed(2)} ر.س</td>
                   <td className="py-4 px-6">
                     <span
                       className={`px-3 py-1 rounded-full text-sm ${getStatusColor(
@@ -279,11 +322,16 @@ export default function OrdersPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="gap-2"
-                      onClick={() => console.log("View order:", order.id)}
+                      className="hover:bg-primary hover:text-white transition-colors"
                     >
-                      <EyeIcon className="h-4 w-4" />
-                      عرض
+                      <Link
+                        href={`/dashboard/orders/${order._id}`}
+                        className="flex gap-2"
+                        target="_blank"
+                      >
+                        <EyeIcon className="h-4 w-4" />
+                        عرض
+                      </Link>
                     </Button>
                   </td>
                 </tr>

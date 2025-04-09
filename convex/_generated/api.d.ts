@@ -24,6 +24,7 @@ import type * as header from "../header.js";
 import type * as hero from "../hero.js";
 import type * as http from "../http.js";
 import type * as newsletter from "../newsletter.js";
+import type * as orders from "../orders.js";
 import type * as partners from "../partners.js";
 import type * as products from "../products.js";
 import type * as reviews from "../reviews.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   hero: typeof hero;
   http: typeof http;
   newsletter: typeof newsletter;
+  orders: typeof orders;
   partners: typeof partners;
   products: typeof products;
   reviews: typeof reviews;

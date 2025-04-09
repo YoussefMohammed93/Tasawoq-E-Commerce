@@ -1,6 +1,7 @@
 "use client";
 
 import { Heading } from "@/components/ui/heading";
+import { usePathname } from "next/navigation";
 
 interface DashboardHeaderProps {
   heading: string;
@@ -13,8 +14,11 @@ export function DashboardHeader({
   description,
   children,
 }: DashboardHeaderProps) {
+  const pathname = usePathname();
   return (
-    <div className="flex items-center justify-between mb-8">
+    <div
+      className={`flex items-center justify-between ${pathname === "/orders/orderId" ? "mb-8" : "mb-0"}`}
+    >
       <div>
         <Heading title={heading} description={description || ""} />
       </div>

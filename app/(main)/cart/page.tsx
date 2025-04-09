@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useCart } from "@/contexts/cart-context";
@@ -62,13 +62,30 @@ function EmptyCart() {
 function CartItemSkeleton() {
   return (
     <div className="flex flex-col sm:flex-row gap-4 p-4 border rounded-lg animate-pulse">
-      <Skeleton className="h-24 w-24 rounded-md" />
-      <div className="flex-1 space-y-2">
-        <Skeleton className="h-6 w-3/4" />
-        <Skeleton className="h-4 w-1/2" />
-        <div className="flex justify-between items-center pt-2">
-          <Skeleton className="h-8 w-24" />
-          <Skeleton className="h-8 w-24" />
+      <Skeleton className="h-40 sm:h-40 sm:w-40 rounded-md" />
+      <div className="flex-1 space-y-3">
+        <div className="flex justify-between">
+          <Skeleton className="h-6 w-3/4" />
+          <Skeleton className="h-8 w-8 rounded-md" />
+        </div>
+        <Skeleton className="h-4 w-full" />
+
+        <div className="flex flex-wrap gap-2 mb-2">
+          <Skeleton className="h-6 w-20 rounded-md" />
+          <Skeleton className="h-6 w-24 rounded-md" />
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 mt-auto">
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-8 w-8 rounded-md" />
+            <Skeleton className="h-6 w-8" />
+            <Skeleton className="h-8 w-8 rounded-md" />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Skeleton className="h-6 w-20" />
+            <Skeleton className="h-4 w-16" />
+          </div>
         </div>
       </div>
     </div>
@@ -93,12 +110,24 @@ function CartSummarySkeleton() {
           <Skeleton className="h-4 w-1/4" />
         </div>
       </div>
+
+      {/* Coupon input skeleton */}
+      <div className="mt-4 mb-4">
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-24" />
+        </div>
+      </div>
+
       <Separator />
       <div className="flex justify-between">
         <Skeleton className="h-6 w-1/3" />
         <Skeleton className="h-6 w-1/4" />
       </div>
       <Skeleton className="h-10 w-full" />
+      <div className="mt-4 text-center">
+        <Skeleton className="h-4 w-32 mx-auto" />
+      </div>
     </div>
   );
 }
@@ -117,12 +146,35 @@ export default function CartPage() {
     isApplyingCoupon,
     discountAmount,
   } = useCart();
-  const validateCouponDirectly = useMutation(api.coupons.validateCoupon);
+
+  // Local loading state to ensure cart items are displayed properly
+  const [localLoading, setLocalLoading] = useState(true);
+  const [isClearing, setIsClearing] = useState(false);
   const [clearCartDialogOpen, setClearCartDialogOpen] = useState(false);
   const [couponCode, setCouponCode] = useState("");
   const [status, setStatus] = useState<"idle" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const validateCouponDirectly = useMutation(api.coupons.validateCoupon);
   const shippingSettings = useQuery(api.settings.getShippingSettings);
+
+  useEffect(() => {
+    // If we already have cart items, set local loading to false immediately
+    if (cartItems.length > 0 && shippingSettings !== undefined) {
+      console.log(
+        "Cart items and shipping settings loaded, setting localLoading to false immediately"
+      );
+      setLocalLoading(false);
+    } else {
+      // Otherwise, set local loading to false after a short delay
+      const timer = setTimeout(() => {
+        console.log("Setting local loading to false after timeout");
+        setLocalLoading(false);
+      }, 200);
+
+      return () => clearTimeout(timer);
+    }
+  }, [cartItems, shippingSettings]);
 
   // Handle quantity change
   const handleQuantityChange = (
@@ -150,7 +202,7 @@ export default function CartPage() {
   };
 
   const shipping = calculateShipping(subtotal);
-  const total = subtotal + shipping;
+  const total = subtotal + shipping - discountAmount;
 
   // Handle coupon application
   const handleApplyCoupon = async () => {
@@ -225,13 +277,25 @@ export default function CartPage() {
                     <AlertDialogFooter>
                       <AlertDialogCancel>إلغاء</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => {
-                          clearCart();
-                          setClearCartDialogOpen(false);
+                        onClick={async () => {
+                          try {
+                            setIsClearing(true);
+                            await clearCart();
+                          } finally {
+                            setIsClearing(false);
+                            setClearCartDialogOpen(false);
+                          }
                         }}
                         className="bg-destructive hover:bg-destructive/90"
                       >
-                        إفراغ السلة
+                        {isClearing ? (
+                          <span className="flex items-center gap-2">
+                            جاري التحميل...
+                            <Loader2 className="h-5 w-5 animate-spin" />
+                          </span>
+                        ) : (
+                          "إفراغ السلة"
+                        )}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -239,7 +303,7 @@ export default function CartPage() {
               )}
             </div>
 
-            {isLoading ? (
+            {isLoading || localLoading || shippingSettings === undefined ? (
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-4">
                   {[1, 2, 3].map((i) => (
@@ -500,9 +564,11 @@ export default function CartPage() {
                           {total.toFixed(2)} ر.س
                         </span>
                       </div>
-                      <Button className="w-full gap-2">
-                        <ShoppingBag className="h-4 w-4" />
-                        إتمام الطلب
+                      <Button className="w-full gap-2" asChild>
+                        <Link href="/checkout">
+                          <ShoppingBag className="h-4 w-4" />
+                          إتمام الطلب
+                        </Link>
                       </Button>
                       <div className="mt-4 text-center">
                         <Link

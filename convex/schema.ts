@@ -253,4 +253,43 @@ export default defineSchema({
     notificationType: v.optional(v.string()),
     // Add other settings fields as needed
   }),
+
+  orders: defineTable({
+    userId: v.id("users"),
+    orderNumber: v.string(),
+    status: v.string(), // pending, processing, shipped, delivered, cancelled
+    fullName: v.string(),
+    email: v.string(),
+    phone: v.string(),
+    country: v.string(),
+    city: v.string(),
+    district: v.string(),
+    street: v.string(),
+    postalCode: v.optional(v.string()),
+    notes: v.optional(v.string()),
+    subtotal: v.number(),
+    shipping: v.number(),
+    discount: v.number(),
+    total: v.number(),
+    paymentMethod: v.string(),
+    couponCode: v.optional(v.string()),
+    couponDiscount: v.optional(v.number()),
+    createdAt: v.string(),
+    updatedAt: v.optional(v.string()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_status", ["status"])
+    .index("by_created", ["createdAt"])
+    .index("by_order_number", ["orderNumber"]),
+
+  orderItems: defineTable({
+    orderId: v.id("orders"),
+    productId: v.id("products"),
+    productName: v.string(),
+    productPrice: v.number(),
+    quantity: v.number(),
+    selectedSize: v.optional(v.string()),
+    selectedColor: v.optional(v.string()),
+    total: v.number(),
+  }).index("by_order", ["orderId"]),
 });

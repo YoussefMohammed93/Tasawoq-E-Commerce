@@ -92,10 +92,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const cartItems = React.useMemo(() => cartQuery || [], [cartQuery]);
   const cartCount = useQuery(api.cart.getCartCount) || 0;
 
-  // Reset loading state when navigating to a new page
+  // Handle loading state
   useEffect(() => {
-    setIsLoading(true);
-  }, [pathname]);
+    // If cartItems is already defined, set loading to false
+    if (cartItems !== undefined) {
+      // Use a short timeout to ensure the UI has time to update
+      const timer = setTimeout(() => {
+        setIsLoading(false);
+        console.log("Cart context: Setting isLoading to false", {
+          cartItemsLength: cartItems.length,
+        });
+      }, 50);
+
+      return () => clearTimeout(timer);
+    }
+  }, [cartItems]);
+
+  // When pathname changes, don't automatically set loading to true
+  // This prevents the loading state from being reset when navigating to the cart page
 
   // Calculate cart total
   const cartTotal = React.useMemo(() => {
@@ -131,14 +145,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const clearCartMutation = useMutation(api.cart.clearCart);
   // We'll use a different approach for validating coupons
 
-  useEffect(() => {
-    // Only set loading to false when we have a definitive response from the server
-    // This prevents flashing of empty cart state
-    if (cartItems !== undefined) {
-      // Set loading to false immediately to prevent flashing
-      setIsLoading(false);
-    }
-  }, [cartItems]);
+  // This effect is no longer needed as we handle loading state in the pathname effect above
 
   // Check if a product is in the cart
   const isProductInCart = (productId: Id<"products">) => {
@@ -265,21 +272,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
       const result = await validateCouponDirectly({ code });
 
       if (result?.valid && result?.coupon) {
-        // Increment the coupon usage count
-        try {
-          await incrementCouponUsage({ couponId: result.coupon._id });
-        } catch (error) {
-          console.error("Failed to increment coupon usage:", error);
-          // If the coupon has reached its usage limit, return false
-          if (
-            error instanceof Error &&
-            error.message === "Coupon usage limit reached"
-          ) {
-            return false;
-          }
-          // For other errors, we'll still allow the coupon to be applied
-        }
-
+        // Just validate the coupon without incrementing usage count
+        // The usage count will be incremented only when the order is completed
         setCoupon(result.coupon);
         return true;
       } else {
