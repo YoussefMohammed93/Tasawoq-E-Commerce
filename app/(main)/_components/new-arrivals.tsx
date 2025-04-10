@@ -5,6 +5,8 @@ import { ProductCard } from "@/components/ui/product-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { useCart } from "@/contexts/cart-context";
+import { Id } from "@/convex/_generated/dataModel";
 
 const NewArrivalsSkeleton = () => {
   return (
@@ -27,13 +29,19 @@ const NewArrivalsSkeleton = () => {
 };
 
 export const NewArrivalsSection = () => {
+  // Get the addToCart function from the cart context
+  const { addToCart } = useCart();
+
   // Fetch products from backend
   const productsData = useQuery(api.products.getProducts);
   const isLoading = productsData === undefined;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = (productId: Id<"products">, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Call the addToCart function with the product ID
+    addToCart(productId, 1);
   };
 
   if (isLoading) {
@@ -76,7 +84,7 @@ export const NewArrivalsSection = () => {
                 key={product._id}
                 product={product}
                 variant="compact"
-                onAddToCart={(_, e) => handleAddToCart(e)}
+                onAddToCart={(productId, e) => handleAddToCart(productId, e)}
               />
             ))}
           </div>
@@ -85,4 +93,3 @@ export const NewArrivalsSection = () => {
     </section>
   );
 };
-

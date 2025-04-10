@@ -178,7 +178,7 @@ const ReviewCard = ({
                   )}
                 </div>
               </div>
-              <p className="mt-3 mr-2 text-base sm:text-lg text-muted-foreground leading-relaxed break-words">
+              <p className="mt-3 mr-2 sm:mr-0 text-base sm:text-lg text-muted-foreground leading-relaxed break-words">
                 {review.comment}
               </p>
             </div>
@@ -323,6 +323,7 @@ export default function ProductPage() {
   const { addToCart, isProductInCart } = useCart();
   const isWishlisted = product?._id ? isInWishlist(product._id) : false;
   const isInCart = product?._id ? isProductInCart(product._id) : false;
+  const isOutOfStock = product?.quantity !== undefined && product.quantity <= 0;
 
   if (!product) {
     return (
@@ -628,11 +629,21 @@ export default function ProductPage() {
                       selectedColor
                     );
                   }}
-                  variant={isInCart ? "secondary" : "default"}
-                  disabled={isInCart}
+                  variant={
+                    isInCart
+                      ? "secondary"
+                      : isOutOfStock
+                        ? "destructive"
+                        : "default"
+                  }
+                  disabled={isInCart || isOutOfStock}
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  {isInCart ? "في السلة" : "إضافة للسلة"}
+                  {isInCart
+                    ? "في السلة"
+                    : isOutOfStock
+                      ? "نفذ المنتج"
+                      : "إضافة للسلة"}
                 </Button>
                 <Button
                   variant="outline"
@@ -679,7 +690,7 @@ export default function ProductPage() {
                     {product.discountPercentage > 0 && (
                       <Badge
                         variant="outline"
-                        className="text-xs sm:text-sm border-transparent bg-red-500 text-white"
+                        className="text-xs sm:text-sm border-transparent bg-green-500 text-white"
                       >
                         خصم {product.discountPercentage}%
                       </Badge>
@@ -706,8 +717,7 @@ export default function ProductPage() {
                     <p
                       className={cn(
                         "text-justify text-xs sm:text-sm text-muted-foreground",
-                        !isExpanded && "line-clamp-2",
-                        product.quantity === 0 && "text-red-500"
+                        !isExpanded && "line-clamp-2"
                       )}
                     >
                       {product.description}
@@ -717,9 +727,7 @@ export default function ProductPage() {
                         onClick={() => setIsExpanded(!isExpanded)}
                         className={cn(
                           "cursor-pointer text-xs sm:text-sm hover:underline mt-1",
-                          product.quantity === 0
-                            ? "text-red-500"
-                            : "text-primary"
+                          "text-primary"
                         )}
                       >
                         {isExpanded ? "عرض أقل" : "عرض المزيد"}

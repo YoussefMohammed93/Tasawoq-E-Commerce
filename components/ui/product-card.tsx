@@ -5,7 +5,7 @@ import Image from "next/image";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Heart, ShoppingCart } from "lucide-react";
+import { AlertTriangle, Heart, ShoppingCart } from "lucide-react";
 import { useWishlist } from "@/contexts/wishlist-context";
 import { useCart } from "@/contexts/cart-context";
 import { Id } from "@/convex/_generated/dataModel";
@@ -21,6 +21,7 @@ export interface ProductCardProps {
     mainImageUrl: string | null;
     badges?: string[];
     categoryId?: Id<"categories">;
+    quantity?: number;
   };
   className?: string;
   aspectRatio?: "square" | "portrait" | "custom";
@@ -48,11 +49,20 @@ export function ProductCard({
   const discountedPrice =
     product.price * (1 - product.discountPercentage / 100);
 
+  // Check if product is out of stock
+  const isOutOfStock = product.quantity !== undefined && product.quantity <= 0;
+
   // Handle add to cart
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     console.log("Starting add to cart process...");
+
+    // Don't add to cart if out of stock
+    if (isOutOfStock) {
+      e.preventDefault();
+      return;
+    }
 
     if (onAddToCart) {
       console.log("Using provided onAddToCart handler");
@@ -83,11 +93,8 @@ export function ProductCard({
     custom: "",
   }[aspectRatio];
 
-  // Debug image URL
-  console.log(`Product ${product._id} image URL:`, product.mainImageUrl);
-
   return (
-    <Link href={`/products/${product._id}`} className="block">
+    <Link href={`/products/${product._id}`} className="block relative">
       <Card
         className={cn(
           "h-full flex flex-col p-0 overflow-hidden hover:bg-muted/50 transition-colors duration-300",
@@ -97,6 +104,14 @@ export function ProductCard({
           className
         )}
       >
+        {isOutOfStock && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded-xl z-40">
+            <div className="flex flex-col items-center gap-2 text-muted/90 bg-muted/20 p-6 rounded-full">
+              <AlertTriangle className="size-8" />
+              <span>نفذ المنتج</span>
+            </div>
+          </div>
+        )}
         <div
           className={cn("relative w-full overflow-hidden", aspectRatioClass)}
         >
@@ -120,6 +135,8 @@ export function ProductCard({
               (e.target as HTMLImageElement).src = "/hoodie.png";
             }}
           />
+
+          {/* Out of Stock Overlay */}
 
           {/* Badges Container */}
           <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10 flex flex-col gap-2">
@@ -207,11 +224,21 @@ export function ProductCard({
             <Button
               className="w-full gap-2 text-sm sm:text-base mt-auto"
               onClick={handleAddToCart}
-              variant={isInCart ? "secondary" : "default"}
-              disabled={isInCart} // Add this to prevent multiple clicks
+              variant={
+                isInCart
+                  ? "secondary"
+                  : isOutOfStock
+                    ? "destructive"
+                    : "default"
+              }
+              disabled={isInCart || isOutOfStock} // Disable if in cart or out of stock
             >
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
-              {isInCart ? "في السلة" : "إضافة للسلة"}
+              {isInCart
+                ? "في السلة"
+                : isOutOfStock
+                  ? "نفذ المنتج"
+                  : "إضافة للسلة"}
             </Button>
           )}
         </div>

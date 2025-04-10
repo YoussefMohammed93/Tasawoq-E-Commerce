@@ -11,6 +11,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ProductCard } from "@/components/ui/product-card";
+import { useCart } from "@/contexts/cart-context";
+import { Id } from "@/convex/_generated/dataModel";
 
 const ProductSkeletonItem = () => {
   return (
@@ -77,6 +79,9 @@ export const ProductsSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
+  // Get the addToCart function from the cart context
+  const { addToCart } = useCart();
+
   // Fetch products from backend
   const productsData = useQuery(api.products.getProducts);
   const isLoading = productsData === undefined;
@@ -137,9 +142,12 @@ export const ProductsSection = () => {
     currentSlide >= totalSlides - (typeof perView === "number" ? perView : 1);
   const isAtEnd = currentSlide === 0;
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = (productId: Id<"products">, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Call the addToCart function with the product ID
+    addToCart(productId, 1);
   };
 
   return (
@@ -164,7 +172,9 @@ export const ProductsSection = () => {
                     key={product._id}
                     product={product}
                     variant="compact"
-                    onAddToCart={(_, e) => handleAddToCart(e)}
+                    onAddToCart={(productId, e) =>
+                      handleAddToCart(productId, e)
+                    }
                   />
                 </div>
               ))}
@@ -228,4 +238,3 @@ export const ProductsSection = () => {
     </section>
   );
 };
-

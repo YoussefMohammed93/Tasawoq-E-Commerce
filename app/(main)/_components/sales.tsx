@@ -11,6 +11,8 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ProductCard } from "@/components/ui/product-card";
 import { Card } from "@/components/ui/card";
+import { useCart } from "@/contexts/cart-context";
+import { Id } from "@/convex/_generated/dataModel";
 
 const SalesSkeletonItem = () => {
   return (
@@ -77,6 +79,9 @@ export const SalesSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
 
+  // Get the addToCart function from the cart context
+  const { addToCart } = useCart();
+
   // Fetch products from backend
   const productsData = useQuery(api.products.getProducts);
   const isLoading = productsData === undefined;
@@ -111,12 +116,6 @@ export const SalesSection = () => {
     return <SalesSectionSkeleton />;
   }
 
-  // Log the first product to see its structure
-  if (productsData && productsData.length > 0) {
-    console.log("First product:", productsData[0]);
-    console.log("First product image URL:", productsData[0].mainImageUrl);
-  }
-
   // Filter products with discount or "خصم" or "sales" badge
   const salesProducts = productsData
     .filter(
@@ -143,9 +142,12 @@ export const SalesSection = () => {
   const isAtEnd =
     currentSlide >= totalSlides - (typeof perView === "number" ? perView : 1);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = (productId: Id<"products">, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    // Call the addToCart function with the product ID
+    addToCart(productId, 1);
   };
 
   return (
@@ -170,7 +172,9 @@ export const SalesSection = () => {
                     key={product._id}
                     product={product}
                     variant="compact"
-                    onAddToCart={(_, e) => handleAddToCart(e)}
+                    onAddToCart={(productId, e) =>
+                      handleAddToCart(productId, e)
+                    }
                   />
                 </div>
               ))}

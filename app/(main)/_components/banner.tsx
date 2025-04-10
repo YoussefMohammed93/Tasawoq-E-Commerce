@@ -1,12 +1,102 @@
 "use client";
 
+import { useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { MessageCircleIcon, SendIcon, PhoneIcon, MailIcon } from "lucide-react";
+import { toast } from "sonner";
+import {
+  MessageCircleIcon,
+  SendIcon,
+  PhoneIcon,
+  MailIcon,
+  Loader2,
+} from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export const BannerSection = () => {
+  const submitContactForm = useMutation(api.contact.submitContactForm);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
+
+  const [formErrors, setFormErrors] = useState({
+    name: false,
+    email: false,
+    message: false,
+    subject: false,
+  });
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Clear error when user types
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors((prev) => ({ ...prev, [name]: false }));
+    }
+  };
+
+  const handleSubjectChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, subject: value }));
+    setFormErrors((prev) => ({ ...prev, subject: false }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Simple validation
+    const errors = {
+      name: formData.name.trim() === "",
+      email: formData.email.trim() === "" || !formData.email.includes("@"),
+      message: formData.message.trim() === "",
+      subject: !formData.subject,
+    };
+
+    setFormErrors(errors);
+
+    if (!Object.values(errors).some((error) => error)) {
+      setIsSubmitting(true);
+
+      try {
+        // Submit to backend
+        await submitContactForm(formData);
+
+        toast.success("تم إرسال رسالتك بنجاح! سنتواصل معك قريباً.");
+
+        // Reset form
+        setFormData({
+          name: "",
+          email: "",
+          phone: "",
+          subject: "",
+          message: "",
+        });
+      } catch (error) {
+        console.error("Error submitting form:", error);
+        toast.error("لم نتمكن من إرسال رسالتك. يرجى المحاولة مرة أخرى.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    }
+  };
   return (
     <section className="py-16 bg-gradient-to-b from-background to-primary/5 relative overflow-hidden">
       <div className="absolute inset-0 grid grid-cols-3 -space-x-52 opacity-10 dark:opacity-5">
@@ -64,32 +154,123 @@ export const BannerSection = () => {
             </div>
           </div>
           <div>
-            <Card className="p-8 backdrop-blur-sm bg-background/80">
-              <form onSubmit={(e) => e.preventDefault()} className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">الاسم</label>
-                  <Input placeholder="أدخل اسمك" className="h-10" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">
-                    البريد الإلكتروني
+            <Card className="p-6 backdrop-blur-sm bg-background/80">
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="space-y-1">
+                  <label htmlFor="name" className="text-sm font-medium">
+                    الاسم الكامل <span className="text-destructive">*</span>
                   </label>
                   <Input
-                    type="email"
-                    placeholder="أدخل بريدك الإلكتروني"
-                    className="h-10"
+                    id="name"
+                    name="name"
+                    placeholder="أدخل اسمك الكامل"
+                    value={formData.name}
+                    onChange={handleChange}
+                    className={formErrors.name ? "border-destructive" : ""}
                   />
+                  {formErrors.name && (
+                    <p className="text-destructive text-xs">يرجى إدخال الاسم</p>
+                  )}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">الرسالة</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label htmlFor="email" className="text-sm font-medium">
+                      البريد الإلكتروني{" "}
+                      <span className="text-destructive">*</span>
+                    </label>
+                    <Input
+                      id="email"
+                      name="email"
+                      type="email"
+                      placeholder="أدخل بريدك الإلكتروني"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className={formErrors.email ? "border-destructive" : ""}
+                    />
+                    {formErrors.email && (
+                      <p className="text-destructive text-xs">
+                        يرجى إدخال بريد إلكتروني صحيح
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <label htmlFor="phone" className="text-sm font-medium">
+                      رقم الهاتف
+                    </label>
+                    <Input
+                      id="phone"
+                      name="phone"
+                      placeholder="أدخل رقم هاتفك"
+                      value={formData.phone}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="subject" className="text-sm font-medium">
+                    الموضوع <span className="text-destructive">*</span>
+                  </label>
+                  <Select
+                    value={formData.subject}
+                    onValueChange={handleSubjectChange}
+                    required
+                  >
+                    <SelectTrigger
+                      className={formErrors.subject ? "border-destructive" : ""}
+                    >
+                      <SelectValue placeholder="اختر موضوع الرسالة" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">استفسار عام</SelectItem>
+                      <SelectItem value="support">الدعم الفني</SelectItem>
+                      <SelectItem value="sales">المبيعات</SelectItem>
+                      <SelectItem value="feedback">
+                        اقتراحات وملاحظات
+                      </SelectItem>
+                      <SelectItem value="other">أخرى</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {formErrors.subject && (
+                    <p className="text-destructive text-xs">
+                      يرجى اختيار موضوع الرسالة
+                    </p>
+                  )}
+                </div>
+                <div className="space-y-1">
+                  <label htmlFor="message" className="text-sm font-medium">
+                    الرسالة <span className="text-destructive">*</span>
+                  </label>
                   <Textarea
-                    className="min-h-[120px] resize-none"
+                    id="message"
+                    name="message"
                     placeholder="اكتب رسالتك هنا..."
+                    value={formData.message}
+                    onChange={handleChange}
+                    className={`min-h-[100px] resize-none ${formErrors.message ? "border-destructive" : ""}`}
                   />
+                  {formErrors.message && (
+                    <p className="text-destructive text-xs">
+                      يرجى إدخال رسالتك
+                    </p>
+                  )}
                 </div>
-                <Button size="lg" className="w-full gap-2">
-                  إرسال الرسالة
-                  <SendIcon className="h-4 w-4" />
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full gap-2"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      جاري الإرسال...
+                    </>
+                  ) : (
+                    <>
+                      إرسال الرسالة
+                      <SendIcon className="h-4 w-4" />
+                    </>
+                  )}
                 </Button>
               </form>
             </Card>

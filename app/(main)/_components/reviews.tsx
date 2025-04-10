@@ -2,49 +2,17 @@
 
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useKeenSlider } from "keen-slider/react";
 import { Calendar, StarIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { SectionHeading } from "@/components/ui/section-heading";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 
-const reviews = [
-  {
-    id: 1,
-    name: "أحمد محمد",
-    rating: 5,
-    comment: "منتجات رائعة وخدمة عملاء ممتازة. سعيد",
-    date: "2023-05-17",
-    avatar: "/avatar.png",
-  },
-  {
-    id: 2,
-    name: "سارة أحمد",
-    rating: 4,
-    comment: "جودة المنتجات ممتازة والتوصيل سريع. تجربة شراء موفقة",
-    date: "2024-02-14",
-    avatar: "/avatar.png",
-  },
-  {
-    id: 3,
-    name: "محمد علي",
-    rating: 5,
-    comment: "خدمة عملاء متميزة وسرعة في الاستجابة. سأكرر التجربة بالتأكيد",
-    date: "2024-02-13",
-    avatar: "/avatar.png",
-  },
-  {
-    id: 4,
-    name: "فاطمة حسن",
-    rating: 5,
-    comment:
-      "تجربة تسوق رائعة من البداية للنهاية. أنصح بالتعامل معهمتجربة تسوق رائعة من البداية للنهاية. أنصح بالتعامل معهم",
-    date: "2024-02-12",
-    avatar: "/avatar.png",
-  },
-];
+// Removed hardcoded reviews
 
 const ReviewSkeletonItem = () => {
   return (
@@ -111,9 +79,12 @@ export const ReviewsSectionSkeleton = () => {
 };
 
 export const ReviewsSection = () => {
-  const [isLoading, setIsLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [loaded, setLoaded] = useState(false);
+
+  // Fetch featured reviews from the backend
+  const featuredReviews = useQuery(api.reviews.getFeaturedReviews) || [];
+  const isLoading = featuredReviews === undefined;
 
   const [sliderRef, instanceRef] = useKeenSlider({
     initial: 0,
@@ -138,13 +109,13 @@ export const ReviewsSection = () => {
     },
   });
 
-  useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
-  }, []);
-
   if (isLoading) {
     return <ReviewsSectionSkeleton />;
+  }
+
+  // If no featured reviews, don't show the section
+  if (featuredReviews.length === 0) {
+    return null;
   }
 
   const totalSlides = instanceRef.current?.track.details.slides.length || 0;
@@ -170,21 +141,21 @@ export const ReviewsSection = () => {
         </div>
         <div className="relative">
           <div ref={sliderRef} className="keen-slider">
-            {reviews.map((review) => (
-              <div key={review.id} className="keen-slider__slide">
+            {featuredReviews.map((review) => (
+              <div key={review._id} className="keen-slider__slide">
                 <Card className="p-6 pb-0 h-[200px]">
                   <div className="flex items-start gap-4">
                     <div className="relative w-10 h-10">
                       <Image
-                        src={review.avatar}
-                        alt={review.name}
+                        src={review.userImage || "/avatar.png"}
+                        alt={review.userName}
                         fill
                         className="object-contain rounded-full"
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
                       />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold mb-1">{review.name}</h3>
+                      <h3 className="font-semibold mb-1">{review.userName}</h3>
                       <div className="flex items-center gap-1 mb-2">
                         {[...Array(5)].map((_, i) => (
                           <StarIcon
@@ -203,8 +174,10 @@ export const ReviewsSection = () => {
                       <div className="flex items-center gap-2 text-muted-foreground mt-3">
                         <Calendar className="size-3.5" />
                         <p className="text-sm mt-1">
-                          {review.date
-                            ? new Date(review.date).toLocaleDateString("ar-SA")
+                          {review.createdAt
+                            ? new Date(review.createdAt).toLocaleDateString(
+                                "ar-SA"
+                              )
                             : ""}
                         </p>
                       </div>

@@ -155,3 +155,56 @@ export const adminDeleteReview = mutation({
     return true;
   },
 });
+
+// Get featured reviews for the main page
+export const getFeaturedReviews = query({
+  handler: async (ctx) => {
+    const reviews = await ctx.db
+      .query("reviews")
+      .withIndex("by_featured", (q) => q.eq("featured", true))
+      .order("desc")
+      .collect();
+
+    const reviewsWithInfo = await Promise.all(
+      reviews.map(async (review) => {
+        const user = await ctx.db.get(review.userId);
+        const product = await ctx.db.get(review.productId);
+
+        return {
+          ...review,
+          userName: user
+            ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+            : "مستخدم",
+          userImage: user?.imageUrl,
+          productName: product?.name || "منتج غير متوفر",
+          productImage: product
+            ? await ctx.storage.getUrl(product.mainImage)
+            : null,
+        };
+      })
+    );
+
+    return reviewsWithInfo;
+  },
+});
+
+// Toggle featured status of a review
+export const toggleReviewFeatured = mutation({
+  args: {
+    reviewId: v.id("reviews"),
+    featured: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const review = await ctx.db.get(args.reviewId);
+
+    if (!review) {
+      throw new Error("Review not found");
+    }
+
+    await ctx.db.patch(args.reviewId, {
+      featured: args.featured,
+    });
+
+    return true;
+  },
+});

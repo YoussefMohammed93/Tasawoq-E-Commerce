@@ -606,7 +606,7 @@ export default function CheckoutPage() {
     <>
       <Header />
       <main className="flex-1 pt-16">
-        <div className="max-w-7xl mx-auto px5 py-8">
+        <div className="max-w-7xl mx-auto px-5 py-8">
           <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
               <h1 className="text-2xl sm:text-3xl font-bold">إتمام الطلب</h1>
@@ -1295,7 +1295,7 @@ export default function CheckoutPage() {
 
                             {/* Order Status Timeline */}
                             <div className="max-w-2xl mx-auto px-4">
-                              <div className="flex justify-between items-center mb-2">
+                              <div className="flex flex-row-reverse justify-between items-center mb-2">
                                 <div className="text-center">
                                   <div className="w-10 h-10 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-1">
                                     <CheckCircle className="h-5 w-5" />
@@ -1346,7 +1346,7 @@ export default function CheckoutPage() {
                                 <div className="absolute top-0 left-0 w-32 h-32 rounded-br-full -translate-x-16 -translate-y-16 bg-primary/5"></div>
                                 <div className="absolute bottom-0 right-0 w-32 h-32 rounded-tl-full translate-x-16 translate-y-16 bg-primary/5"></div>
 
-                                <div className="relative z-10 flex items-center justify-between">
+                                <div className="relative z-10 flex flex-col sm:flex-row sm:items-center gap-5 justify-between">
                                   <div>
                                     <h3 className="text-xl font-bold text-primary mb-1">
                                       تفاصيل الطلب

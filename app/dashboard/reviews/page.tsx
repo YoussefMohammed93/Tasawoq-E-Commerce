@@ -10,6 +10,8 @@ import {
   TrashIcon,
   PackageIcon,
   Loader2,
+  Plus,
+  X,
 } from "lucide-react";
 import {
   Select,
@@ -54,10 +56,14 @@ export default function ReviewsPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [reviewToDelete, setReviewToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isTogglingFeatured, setIsTogglingFeatured] = useState<string | null>(
+    null
+  );
   const ITEMS_PER_PAGE = 5;
 
   const allReviews = useQuery(api.reviews.getAllReviews) || [];
   const deleteReviewMutation = useMutation(api.reviews.adminDeleteReview);
+  const toggleFeaturedMutation = useMutation(api.reviews.toggleReviewFeatured);
 
   const handleDeleteReview = async () => {
     if (!reviewToDelete) return;
@@ -75,6 +81,26 @@ export default function ReviewsPage() {
       setIsDeleting(false);
       setReviewToDelete(null);
       setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const handleToggleFeatured = async (reviewId: string, featured: boolean) => {
+    setIsTogglingFeatured(reviewId);
+    try {
+      await toggleFeaturedMutation({
+        reviewId: reviewId as Id<"reviews">,
+        featured: !featured,
+      });
+      toast.success(
+        !featured
+          ? "تم إضافة التقييم للعرض في الصفحة الرئيسية"
+          : "تم إزالة التقييم من العرض في الصفحة الرئيسية"
+      );
+    } catch (error) {
+      console.error("Error toggling featured status:", error);
+      toast.error("حدث خطأ أثناء تحديث حالة العرض");
+    } finally {
+      setIsTogglingFeatured(null);
     }
   };
 
@@ -282,6 +308,28 @@ export default function ReviewsPage() {
                             "ar-SA"
                           )}
                         </span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="size-8"
+                          onClick={() =>
+                            handleToggleFeatured(review._id, !!review.featured)
+                          }
+                          disabled={isTogglingFeatured === review._id}
+                          title={
+                            review.featured
+                              ? "إزالة من العرض في الصفحة الرئيسية"
+                              : "إضافة للعرض في الصفحة الرئيسية"
+                          }
+                        >
+                          {isTogglingFeatured === review._id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : review.featured ? (
+                            <X className="h-4 w-4" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </Button>
                         <Button
                           variant="outline"
                           size="sm"

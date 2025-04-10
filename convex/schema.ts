@@ -119,10 +119,12 @@ export default defineSchema({
     rating: v.number(),
     comment: v.string(),
     createdAt: v.string(),
+    featured: v.optional(v.boolean()),
   })
     .index("by_product", ["productId"])
     .index("by_user", ["userId"])
-    .index("by_created", ["createdAt"]),
+    .index("by_created", ["createdAt"])
+    .index("by_featured", ["featured"]),
 
   pages: defineTable({
     name: v.string(),
