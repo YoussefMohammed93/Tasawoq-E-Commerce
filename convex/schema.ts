@@ -204,6 +204,20 @@ export default defineSchema({
     mapDescription: v.string(),
   }),
 
+  contactBanner: defineTable({
+    title: v.string(),
+    description: v.string(),
+    isVisible: v.boolean(),
+    contactItems: v.array(
+      v.object({
+        title: v.string(),
+        description: v.string(),
+        image: v.id("_storage"),
+        order: v.number(),
+      })
+    ),
+  }),
+
   contactSubmissions: defineTable({
     name: v.string(),
     email: v.string(),

@@ -1,20 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import {
-  MessageCircleIcon,
-  SendIcon,
-  PhoneIcon,
-  MailIcon,
-  Loader2,
-} from "lucide-react";
+import { Id } from "@/convex/_generated/dataModel";
+import Image from "next/image";
+import { SendIcon, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -23,9 +19,96 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export const BannerSection = () => {
-  const submitContactForm = useMutation(api.contact.submitContactForm);
+interface ContactItem {
+  title: string;
+  description: string;
+  image: Id<"_storage">;
+  order: number;
+}
 
+interface ContactBannerData {
+  title: string;
+  description: string;
+  isVisible: boolean;
+  contactItems: ContactItem[];
+}
+
+// Loading skeleton for the banner section
+const BannerSectionSkeleton = () => {
+  return (
+    <section className="py-16 bg-gradient-to-b from-background to-primary/5 relative overflow-hidden">
+      <div className="absolute inset-0 grid grid-cols-3 -space-x-52 opacity-10 dark:opacity-5">
+        <div className="blur-[106px] h-56 bg-gradient-to-br from-primary to-purple-800 dark:from-blue-700" />
+        <div className="blur-[106px] h-32 bg-gradient-to-r from-cyan-600 to-sky-500 dark:to-indigo-600" />
+        <div className="blur-[106px] h-32 bg-gradient-to-br from-primary to-purple-800 dark:from-blue-700" />
+      </div>
+      <div className="max-w-7xl mx-auto px-5 relative">
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="space-y-8">
+            <div className="space-y-4">
+              <div className="h-10 w-3/4 bg-muted animate-pulse rounded-md" />
+              <div className="h-4 w-full bg-muted animate-pulse rounded-md" />
+              <div className="h-4 w-5/6 bg-muted animate-pulse rounded-md" />
+            </div>
+            <div className="grid gap-6">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-4 p-4 rounded-lg border bg-background/80 backdrop-blur-sm"
+                >
+                  <div className="shrink-0 p-3 rounded-full bg-muted animate-pulse">
+                    <div className="h-6 w-6" />
+                  </div>
+                  <div className="w-full">
+                    <div className="h-5 w-1/3 bg-muted animate-pulse rounded-md mb-2" />
+                    <div className="h-4 w-2/3 bg-muted animate-pulse rounded-md" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Card className="p-6 backdrop-blur-sm bg-background/80">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <div className="h-5 w-1/4 bg-muted animate-pulse rounded-md mb-2" />
+                  <div className="h-10 w-full bg-muted animate-pulse rounded-md" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <div className="h-5 w-1/4 bg-muted animate-pulse rounded-md mb-2" />
+                    <div className="h-10 w-full bg-muted animate-pulse rounded-md" />
+                  </div>
+                  <div className="space-y-1">
+                    <div className="h-5 w-1/4 bg-muted animate-pulse rounded-md mb-2" />
+                    <div className="h-10 w-full bg-muted animate-pulse rounded-md" />
+                  </div>
+                </div>
+                <div className="space-y-1">
+                  <div className="h-5 w-1/4 bg-muted animate-pulse rounded-md mb-2" />
+                  <div className="h-10 w-full bg-muted animate-pulse rounded-md" />
+                </div>
+                <div className="space-y-1">
+                  <div className="h-5 w-1/4 bg-muted animate-pulse rounded-md mb-2" />
+                  <div className="h-24 w-full bg-muted animate-pulse rounded-md" />
+                </div>
+                <div className="h-10 w-full bg-muted animate-pulse rounded-md mt-4" />
+              </div>
+            </Card>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+export const BannerSection = () => {
+  // Default values if no data is available
+  const defaultTitle = "تواصل معنا";
+  const defaultDescription =
+    "نحن هنا لمساعدتك! راسلنا للحصول على المزيد من المعلومات حول منتجاتنا وخدماتنا.";
+
+  // State for form
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
@@ -42,6 +125,26 @@ export const BannerSection = () => {
     subject: false,
   });
 
+  // Fetch data - all hooks must be called before any conditional returns
+  const contactBannerData = useQuery(
+    api.contact.getContactBanner
+  ) as ContactBannerData | null;
+  const submitContactForm = useMutation(api.contact.submitContactForm);
+
+  // Prepare contact items data
+  const sortedContactItems = contactBannerData?.contactItems
+    ? [...contactBannerData.contactItems].sort((a, b) => a.order - b.order)
+    : [];
+
+  // Get image URLs for contact items
+  const contactItemImageUrls = useQuery(api.files.getMultipleImageUrls, {
+    storageIds:
+      sortedContactItems.length > 0
+        ? sortedContactItems.map((item) => item.image)
+        : [],
+  });
+
+  // Form handlers
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -97,6 +200,21 @@ export const BannerSection = () => {
       }
     }
   };
+
+  // Loading states
+  if (contactBannerData === undefined) {
+    return <BannerSectionSkeleton />;
+  }
+
+  if (sortedContactItems.length > 0 && contactItemImageUrls === undefined) {
+    return <BannerSectionSkeleton />;
+  }
+
+  // If the section is set to not visible, don't render it
+  if (contactBannerData && !contactBannerData.isVisible) {
+    return null;
+  }
+
   return (
     <section className="py-16 bg-gradient-to-b from-background to-primary/5 relative overflow-hidden">
       <div className="absolute inset-0 grid grid-cols-3 -space-x-52 opacity-10 dark:opacity-5">
@@ -109,48 +227,49 @@ export const BannerSection = () => {
           <div className="space-y-8">
             <div className="space-y-4">
               <h2 className="text-4xl font-bold tracking-tight">
-                تواصل معنا
-                <span className="text-primary">.</span>
+                {contactBannerData?.title || defaultTitle}
               </h2>
               <p className="text-muted-foreground text-lg leading-relaxed">
-                نحن هنا لمساعدتك! راسلنا للحصول على المزيد من المعلومات حول
-                منتجاتنا وخدماتنا.
+                {contactBannerData?.description || defaultDescription}
               </p>
             </div>
             <div className="grid gap-6">
-              <div className="flex items-center gap-4 p-4 rounded-lg border bg-background/80 backdrop-blur-sm transition-colors hover:bg-card">
-                <div className="shrink-0 p-3 rounded-full bg-primary/10">
-                  <MessageCircleIcon className="text-primary h-6 w-6" />
+              {sortedContactItems.length > 0 ? (
+                sortedContactItems.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center gap-4 p-4 rounded-lg border bg-background/80 backdrop-blur-sm transition-colors hover:bg-card"
+                  >
+                    <div className="shrink-0 p-3 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Image
+                        src={
+                          contactItemImageUrls &&
+                          contactItemImageUrls[index] &&
+                          typeof contactItemImageUrls[index] === "string" &&
+                          contactItemImageUrls[index].startsWith("http")
+                            ? contactItemImageUrls[index]
+                            : "/placeholder-image.png"
+                        }
+                        alt={item.title}
+                        width={24}
+                        height={24}
+                        className="h-6 w-6 object-contain"
+                      />
+                    </div>
+                    <div>
+                      <p className="font-semibold">{item.title}</p>
+                      <p className="text-muted-foreground text-sm">
+                        {item.description}
+                      </p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                // Fallback if no contact items are defined
+                <div className="text-muted-foreground">
+                  لا توجد معلومات اتصال متاحة حاليًا
                 </div>
-                <div>
-                  <p className="font-semibold">دعم متواصل</p>
-                  <p className="text-muted-foreground text-sm">
-                    نستجيب لرسائلك خلال 24 ساعة
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 p-4 rounded-lg border bg-background/80 backdrop-blur-sm transition-colors hover:bg-card">
-                <div className="shrink-0 p-3 rounded-full bg-primary/10">
-                  <PhoneIcon className="text-primary h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">اتصل بنا</p>
-                  <p className="text-muted-foreground text-sm">
-                    +966 123 456 789
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center gap-4 p-4 rounded-lg border bg-background/80 backdrop-blur-sm transition-colors hover:bg-card">
-                <div className="shrink-0 p-3 rounded-full bg-primary/10">
-                  <MailIcon className="text-primary h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-semibold">البريد الإلكتروني</p>
-                  <p className="text-muted-foreground text-sm">
-                    support@example.com
-                  </p>
-                </div>
-              </div>
+              )}
             </div>
           </div>
           <div>

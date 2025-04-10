@@ -154,3 +154,36 @@ export const getNewSubmissionsCount = query({
   },
 });
 
+// Get contact banner content
+export const getContactBanner = query({
+  handler: async (ctx) => {
+    const contactBanner = await ctx.db.query("contactBanner").first();
+    return contactBanner || null;
+  },
+});
+
+// Save contact banner content
+export const saveContactBanner = mutation({
+  args: {
+    title: v.string(),
+    description: v.string(),
+    isVisible: v.boolean(),
+    contactItems: v.array(
+      v.object({
+        title: v.string(),
+        description: v.string(),
+        image: v.id("_storage"),
+        order: v.number(),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db.query("contactBanner").first();
+
+    if (existing) {
+      return await ctx.db.patch(existing._id, args);
+    } else {
+      return await ctx.db.insert("contactBanner", args);
+    }
+  },
+});

@@ -79,10 +79,6 @@ export function DashboardSidebar() {
       href: "/dashboard/sections/contact",
     },
     {
-      label: "آراء العملاء",
-      href: "/dashboard/sections/reviews",
-    },
-    {
       label: "شركاؤنا المعتمدون",
       href: "/dashboard/sections/partners",
     },
