@@ -10,7 +10,6 @@ import {
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useQuery } from "convex/react";
-import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -18,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ShoppingCart, Heart, Search, Menu, Package } from "lucide-react";
 import { SearchDialog } from "@/components/search-dialog";
 import { useCart } from "@/contexts/cart-context";
+import UserButton from "../user-button";
 
 const HeaderLinkSkeleton = ({ isMobile = false }: { isMobile?: boolean }) => {
   return isMobile ? (
@@ -83,7 +83,7 @@ export function Header() {
               variant="ghost"
               size="icon"
               className={cn(
-                "hidden md:flex transition-colors hover:bg-primary/10",
+                "flex transition-colors hover:bg-primary/10",
                 pathname === "/search" &&
                   "text-primary bg-primary/10 hover:bg-primary/10"
               )}
@@ -93,36 +93,6 @@ export function Header() {
               <span className="sr-only">بحث</span>
             </Button>
             <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "hidden md:flex transition-colors hover:bg-primary/10",
-                pathname === "/wishlist" &&
-                  "text-primary bg-primary/10 hover:bg-primary/10"
-              )}
-              asChild
-            >
-              <Link href="/wishlist" className="relative">
-                <Heart className="h-5 w-5" />
-                <span className="sr-only">المفضلة</span>
-              </Link>
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "hidden md:flex transition-colors hover:bg-primary/10",
-                pathname === "/orders" &&
-                  "text-primary bg-primary/10 hover:bg-primary/10"
-              )}
-              asChild
-            >
-              <Link href="/orders" className="relative">
-                <Package className="h-5 w-5" />
-                <span className="sr-only">طلباتي</span>
-              </Link>
-            </Button>
             <Button
               variant="ghost"
               size="icon"
@@ -220,21 +190,6 @@ export function Header() {
                       <Heart className="h-4 w-4" />
                       المفضلة
                     </Link>
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "w-full gap-2",
-                      pathname === "/search" &&
-                        "bg-primary/10 text-primary border-primary"
-                    )}
-                    onClick={() => {
-                      setIsOpen(false);
-                      setSearchOpen(true);
-                    }}
-                  >
-                    <Search className="h-4 w-4" />
-                    بحث
                   </Button>
                 </div>
               </div>
