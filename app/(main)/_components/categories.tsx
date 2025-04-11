@@ -95,7 +95,7 @@ export const CategoriesSection = () => {
           {categories.map((category) => (
             <Link
               key={category._id}
-              href={category.href}
+              href={`/categories/${category._id}`}
               className="block h-[160px]"
             >
               <Card className="group h-full relative overflow-hidden transition-all duration-300">

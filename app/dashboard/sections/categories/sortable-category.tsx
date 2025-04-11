@@ -1,11 +1,4 @@
-import {
-  GripVertical,
-  Pencil,
-  Trash2,
-  Link as LinkIcon,
-  ImageIcon,
-  Loader2,
-} from "lucide-react";
+import { GripVertical, Pencil, Trash2, ImageIcon, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import { useState } from "react";
@@ -21,7 +14,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { CSS } from "@dnd-kit/utilities";
-import { Badge } from "@/components/ui/badge";
 import { useSortable } from "@dnd-kit/sortable";
 import { Button } from "@/components/ui/button";
 import { Id } from "@/convex/_generated/dataModel";
@@ -31,7 +23,6 @@ import { Card, CardContent } from "@/components/ui/card";
 interface Category {
   _id: Id<"categories">;
   name: string;
-  href: string;
   image: Id<"_storage">;
   imageUrl?: string;
   order: number;
@@ -125,20 +116,6 @@ export function SortableCategory({
                         <h3 className="font-semibold text-base sm:text-xl tracking-tight">
                           {category.name}
                         </h3>
-                      </div>
-                      <div>
-                        <Badge
-                          variant="outline"
-                          className="flex items-center gap-1 sm:gap-2"
-                        >
-                          <LinkIcon className="size-3 sm:size-3.5" />
-                          <span
-                            className="truncate text-xs sm:text-sm max-w-[120px] sm:max-w-[200px]"
-                            dir="ltr"
-                          >
-                            {category.href}
-                          </span>
-                        </Badge>
                       </div>
                     </div>
                   </div>

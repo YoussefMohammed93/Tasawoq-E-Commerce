@@ -169,7 +169,7 @@ export default function Header() {
                 }
               }}
             >
-              <Eye className="h-4 w-4 ml-2" />
+              <Eye className="h-4 w-4" />
               معاينة
             </Button>
             <Button

@@ -165,3 +165,15 @@ export const deleteProduct = mutation({
     return true;
   },
 });
+
+// Get products by category
+export const getProductsByCategory = query({
+  args: { categoryId: v.id("categories") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("products")
+      .filter((q) => q.eq(q.field("categoryId"), args.categoryId))
+      .collect();
+  },
+});
+

@@ -58,6 +58,7 @@ export function Header() {
                 <HeaderLinkSkeleton />
                 <HeaderLinkSkeleton />
                 <HeaderLinkSkeleton />
+                <HeaderLinkSkeleton />
               </>
             ) : (
               headerLinks.map((item) => (
@@ -137,6 +138,7 @@ export function Header() {
                 <div className="space-y-1">
                   {!headerLinks ? (
                     <div className="space-y-2">
+                      <HeaderLinkSkeleton isMobile />
                       <HeaderLinkSkeleton isMobile />
                       <HeaderLinkSkeleton isMobile />
                       <HeaderLinkSkeleton isMobile />

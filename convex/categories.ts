@@ -50,7 +50,6 @@ export const saveCategory = mutation({
     id: v.optional(v.id("categories")),
     name: v.string(),
     image: v.id("_storage"),
-    href: v.string(),
     order: v.number(),
   },
   handler: async (ctx, args) => {
@@ -58,7 +57,9 @@ export const saveCategory = mutation({
     if (id) {
       return await ctx.db.patch(id, data);
     }
-    return await ctx.db.insert("categories", data);
+    return await ctx.db.insert("categories", {
+      ...data,
+    });
   },
 });
 
@@ -108,10 +109,24 @@ export const deleteCategoryImage = mutation({
   },
 });
 
-// Get a single category by ID
+// Get a single category by ID, or null if not found
 export const getCategory = query({
   args: { categoryId: v.id("categories") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.categoryId);
+    const category = await ctx.db.get(args.categoryId) ?? null;
+    return category;
+  },
+});
+
+// Get products by category ID
+export const getProductsByCategory = query({
+  args: { categoryId: v.id("categories") },
+  handler: async (ctx, args) => {
+    const products = await ctx.db
+      .query("products")
+      .filter((q) => q.eq(q.field("categoryId"), args.categoryId))
+      .collect();
+
+    return products;
   },
 });

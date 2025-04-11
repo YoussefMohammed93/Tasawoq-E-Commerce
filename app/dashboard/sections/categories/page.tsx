@@ -51,13 +51,11 @@ interface CategoryFormData {
   id?: Id<"categories">;
   name: string;
   image: Id<"_storage">;
-  href: string;
 }
 
 interface Category {
   _id: Id<"categories">;
   name: string;
-  href: string;
   image: Id<"_storage">;
   imageUrl?: string;
   order: number;
@@ -83,7 +81,6 @@ export default function Categories() {
     useState<CategoryFormData | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    href: "",
     image: null as Id<"_storage"> | null,
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -157,16 +154,14 @@ export default function Categories() {
         if (!category) return false;
 
         const nameChanged = formData.name.trim() !== category.name.trim();
-        const hrefChanged = formData.href.trim() !== category.href.trim();
         const imageChanged = formData.image !== category.image;
 
-        return nameChanged || hrefChanged || imageChanged;
+        return nameChanged || imageChanged;
       } else {
         const hasName = formData.name.trim() !== "";
-        const hasHref = formData.href.trim() !== "";
         const hasImage = formData.image !== null;
 
-        return hasName && hasHref && hasImage;
+        return hasName && hasImage;
       }
     }
 
@@ -234,7 +229,7 @@ export default function Categories() {
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.href) {
+    if (!formData.name) {
       toast.error("جميع الحقول مطلوبة");
       return;
     }
@@ -274,7 +269,6 @@ export default function Categories() {
         id: editingCategory?.id,
         name: formData.name.trim(),
         image: imageStorageId as Id<"_storage">,
-        href: formData.href.trim(),
         order: editingCategory
           ? (categories?.find((c) => c._id === editingCategory.id)?.order ?? 0)
           : (categories?.length ?? 0),
@@ -282,7 +276,6 @@ export default function Categories() {
 
       setFormData({
         name: "",
-        href: "",
         image: null,
       });
 
@@ -333,12 +326,10 @@ export default function Categories() {
     setEditingCategory({
       id: category._id,
       name: category.name,
-      href: category.href,
       image: category.image,
     });
     setFormData({
       name: category.name,
-      href: category.href,
       image: category.image,
     });
     setIsDialogOpen(true);
@@ -461,7 +452,7 @@ export default function Categories() {
                 className="gap-2"
                 onClick={() => {
                   setEditingCategory(null);
-                  setFormData({ name: "", href: "", image: null });
+                  setFormData({ name: "", image: null });
                   setIsDialogOpen(true);
                 }}
               >
@@ -585,18 +576,6 @@ export default function Categories() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">رابط الفئة</label>
-              <Input
-                dir="ltr"
-                className="placeholder:text-right"
-                value={formData.href}
-                onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, href: e.target.value }))
-                }
-                placeholder="أدخل رابط الفئة"
-              />
-            </div>
-            <div className="space-y-2">
               <label className="text-sm font-medium">صورة الفئة</label>
               {(imagePreview ||
                 (editingCategory &&
@@ -661,7 +640,6 @@ export default function Categories() {
                 disabled={
                   isSubmitting ||
                   !formData.name ||
-                  !formData.href ||
                   (!editingCategory && !selectedFile)
                 }
               >

@@ -37,7 +37,6 @@ export default defineSchema({
 
   categories: defineTable({
     name: v.string(),
-    href: v.string(),
     order: v.number(),
     image: v.id("_storage"),
   }).index("by_order", ["order"]),
