@@ -13,6 +13,7 @@ import {
   Plus,
   X,
 } from "lucide-react";
+import ReviewsSkeleton from "./reviews-skeleton";
 import {
   Select,
   SelectContent,
@@ -61,7 +62,7 @@ export default function ReviewsPage() {
   );
   const ITEMS_PER_PAGE = 5;
 
-  const allReviews = useQuery(api.reviews.getAllReviews) || [];
+  const allReviews = useQuery(api.reviews.getAllReviews);
   const deleteReviewMutation = useMutation(api.reviews.adminDeleteReview);
   const toggleFeaturedMutation = useMutation(api.reviews.toggleReviewFeatured);
 
@@ -109,17 +110,21 @@ export default function ReviewsPage() {
     setIsDeleteDialogOpen(true);
   };
 
-  const filteredReviews = allReviews.filter((review) => {
-    const matchesSearch =
-      review.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.productName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      review.comment.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredReviews = allReviews
+    ? allReviews.filter((review) => {
+        const matchesSearch =
+          review.userName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          review.productName
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          review.comment.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesRating =
-      ratingFilter === "all" || review.rating === parseInt(ratingFilter);
+        const matchesRating =
+          ratingFilter === "all" || review.rating === parseInt(ratingFilter);
 
-    return matchesSearch && matchesRating;
-  });
+        return matchesSearch && matchesRating;
+      })
+    : [];
 
   const totalPages = Math.ceil(filteredReviews.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -155,12 +160,7 @@ export default function ReviewsPage() {
   };
 
   if (!allReviews) {
-    return (
-      <div className="flex flex-col min-h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="mt-2 text-muted-foreground">جاري تحميل التقييمات...</p>
-      </div>
-    );
+    return <ReviewsSkeleton />;
   }
 
   return (

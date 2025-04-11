@@ -161,7 +161,7 @@ export const ProductsSection = () => {
         </div>
         {featuredProducts.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-muted-foreground">لا توجد منتجات مميزة حال</p>
+            <p className="text-muted-foreground">لا توجد منتجات مميزة حالياً</p>
           </div>
         ) : (
           <div className="relative">

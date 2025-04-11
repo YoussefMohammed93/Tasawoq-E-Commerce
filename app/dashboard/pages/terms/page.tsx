@@ -22,6 +22,7 @@ import { useQuery, useMutation } from "convex/react";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TermsLoadingSkeleton from "./loading";
 
 interface FormData {
   title: string;
@@ -49,6 +50,7 @@ export default function TermsPage() {
   // We need to track activeTab for the Tabs component
   const [activeTab, setActiveTab] = useState("general");
   const [loading, setLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
 
   // Form data state
   const [formData, setFormData] = useState<FormData>({
@@ -129,6 +131,12 @@ export default function TermsPage() {
         contactInfoVisible: termsData.contactInfoVisible ?? true,
         isVisible: termsData.isVisible ?? true,
       });
+
+      // Set a small timeout to ensure smooth transition
+      const timer = setTimeout(() => {
+        setIsDataLoading(false);
+      }, 300);
+      return () => clearTimeout(timer);
     }
   }, [termsData]);
 
@@ -215,6 +223,11 @@ export default function TermsPage() {
       setLoading(false);
     }
   };
+
+  // Show loading skeleton while data is loading
+  if (isDataLoading || termsData === undefined) {
+    return <TermsLoadingSkeleton />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

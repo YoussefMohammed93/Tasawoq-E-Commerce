@@ -57,7 +57,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { ImageUpload } from "@/components/ui/image-upload";
-import LoadingSkeleton from "../../products/loading-skeleton";
+import ContactLoadingSkeleton from "./loading-skeleton";
 
 interface ContactItem {
   title: string;
@@ -742,7 +742,7 @@ export default function ContactPage() {
 
   // Show loading skeleton while data is being fetched
   if (contactBannerData === undefined) {
-    return <LoadingSkeleton />;
+    return <ContactLoadingSkeleton />;
   }
 
   return (

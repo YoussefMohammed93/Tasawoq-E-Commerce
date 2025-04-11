@@ -23,6 +23,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { Id } from "@/convex/_generated/dataModel";
 import { TeamMembers } from "./team-members";
+import AboutLoadingSkeleton from "./loading-skeleton";
 import { Separator } from "@/components/ui/separator";
 
 export default function AboutPage() {
@@ -172,11 +173,7 @@ export default function AboutPage() {
 
   // Loading state
   if (aboutPageData === undefined) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
+    return <AboutLoadingSkeleton />;
   }
 
   return (

@@ -9,7 +9,6 @@ import {
   ChevronDownIcon,
   ShoppingCartIcon,
   LayoutDashboardIcon,
-  UsersIcon as CustomersIcon,
   FileTextIcon,
   PhoneIcon,
 } from "lucide-react";
@@ -146,12 +145,6 @@ export function DashboardSidebar() {
       tooltip: "الطلبات",
       href: "/dashboard/orders",
       badge: unreadOrdersCount || 0,
-    },
-    {
-      icon: CustomersIcon,
-      label: "العملاء",
-      tooltip: "العملاء",
-      href: "/dashboard/customers",
     },
     {
       icon: StarIcon,

@@ -23,6 +23,7 @@ import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import { Id } from "@/convex/_generated/dataModel";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation } from "convex/react";
@@ -35,14 +36,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 function LoadingSkeleton() {
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col" dir="rtl">
       <div className="pt-14 mb-8">
         <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between">
           <div className="space-y-2">
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-5 w-full sm:w-96" />
           </div>
-          <Skeleton className="h-10 w-full sm:w-32" />
         </div>
       </div>
       <div className="space-y-8">
@@ -185,23 +185,6 @@ export default function Hero() {
   const saveHero = useMutation(api.hero.saveHero);
   const deleteStorageId = useMutation(api.files.deleteStorageId);
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.title.trim()) {
-      newErrors.title = "العنوان الرئيسي مطلوب";
-    }
-    if (!formData.description.trim()) {
-      newErrors.description = "الوصف مطلوب";
-    }
-    if (!formData.primaryButtonText.trim()) {
-      newErrors.primaryButtonText = "نص الزر الرئيسي مطلوب";
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   useEffect(() => {
     if (heroData) {

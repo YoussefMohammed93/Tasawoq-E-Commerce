@@ -54,11 +54,11 @@ import {
   MessageSquare,
   Save,
   Edit,
-  Loader2,
   Search,
 } from "lucide-react";
 import { Heading } from "@/components/ui/heading";
 import { Input } from "@/components/ui/input";
+import ContactSubmissionsLoadingSkeleton from "./loading-skeleton";
 
 type Submission = {
   _id: Id<"contactSubmissions">;
@@ -107,6 +107,11 @@ export default function ContactSubmissionsPage() {
     useState<Submission | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [notes, setNotes] = useState("");
+
+  // Show loading skeleton when data is loading
+  if (submissions === undefined) {
+    return <ContactSubmissionsLoadingSkeleton />;
+  }
 
   const getFilteredSubmissions = (tabValue: string) => {
     return submissions?.filter((submission) => {
@@ -215,11 +220,7 @@ export default function ContactSubmissionsPage() {
               className="mt-6 rtl"
               dir="rtl"
             >
-              {!submissions ? (
-                <div className="flex justify-center items-center h-64">
-                  <Loader2 className="size-8 animate-spin" />
-                </div>
-              ) : getFilteredSubmissions(tabValue)?.length === 0 ? (
+              {getFilteredSubmissions(tabValue)?.length === 0 ? (
                 <div className="text-center py-12">
                   <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-medium">لا توجد رسائل</h3>

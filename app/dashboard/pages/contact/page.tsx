@@ -166,6 +166,8 @@ export default function ContactPage() {
 
   // Add loading state check at the beginning of the component
   if (contactPageData === undefined) {
+    // Loading state is now handled by the loading.tsx file
+    // This is kept for client-side transitions
     return <LoadingSkeleton />;
   }
 
@@ -181,7 +183,7 @@ export default function ContactPage() {
         value={activeTab}
         onValueChange={setActiveTab}
         dir="rtl"
-        className="w-full"
+        className="w-full mt-5"
       >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="general">عام</TabsTrigger>

@@ -796,7 +796,7 @@ export default function FooterDashboard() {
                   <h2 className="text-lg font-semibold">الإعدادات العامة</h2>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-sm font-medium block">
