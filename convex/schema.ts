@@ -157,10 +157,6 @@ export default defineSchema({
       })
     ),
     teamVisible: v.optional(v.boolean()),
-    contactPhone: v.string(),
-    contactEmail: v.string(),
-    contactAddress: v.string(),
-    contactInfoVisible: v.optional(v.boolean()),
     isVisible: v.boolean(),
   }),
 

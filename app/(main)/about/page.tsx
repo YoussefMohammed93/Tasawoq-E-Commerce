@@ -6,7 +6,7 @@ import { Footer } from "@/components/ui/footer";
 import { Card, CardContent } from "@/components/ui/card";
 import { SectionHeading } from "@/components/ui/section-heading";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Building2, Users, Target, Phone, Mail, MapPin } from "lucide-react";
+import { Building2, Users, Target } from "lucide-react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -457,58 +457,6 @@ export default function AboutPage() {
                         </p>
                       </div>
                     ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Contact Information */}
-        {(aboutPageData?.contactInfoVisible ?? true) && (
-          <section className="py-12 bg-muted/50">
-            <div className="max-w-7xl mx-auto px-5">
-              <div className="text-center mb-12">
-                <SectionHeading
-                  title="تواصل معنا"
-                  description="نحن هنا للإجابة على استفساراتك"
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <Card className="text-center">
-                  <CardContent className="pt-6">
-                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                      <Phone className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-4">اتصل بنا</h3>
-                    <p className="text-muted-foreground">
-                      {aboutPageData?.contactPhone || "+966 12 345 6789"}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center">
-                  <CardContent className="pt-6">
-                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                      <Mail className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-4">
-                      البريد الإلكتروني
-                    </h3>
-                    <p className="text-muted-foreground">
-                      {aboutPageData?.contactEmail || "info@example.com"}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card className="text-center">
-                  <CardContent className="pt-6">
-                    <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                      <MapPin className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="text-xl font-semibold mb-4">العنوان</h3>
-                    <p className="text-muted-foreground whitespace-pre-line">
-                      {aboutPageData?.contactAddress ||
-                        "الرياض، المملكة العربية السعودية\nشارع الملك فهد، برج المملكة، الطابق 20"}
-                    </p>
-                  </CardContent>
-                </Card>
               </div>
             </div>
           </section>

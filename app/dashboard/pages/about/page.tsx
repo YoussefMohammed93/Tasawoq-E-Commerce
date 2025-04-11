@@ -8,7 +8,6 @@ import {
   FileTextIcon,
   BuildingIcon,
   UsersIcon,
-  PhoneIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
@@ -79,10 +78,10 @@ export default function AboutPage() {
         teamTitle: aboutPageData.teamTitle || "",
         teamDescription: aboutPageData.teamDescription || "",
         teamVisible: aboutPageData.teamVisible ?? true,
-        contactPhone: aboutPageData.contactPhone || "",
-        contactEmail: aboutPageData.contactEmail || "",
-        contactAddress: aboutPageData.contactAddress || "",
-        contactInfoVisible: aboutPageData.contactInfoVisible ?? true,
+        contactPhone: "",
+        contactEmail: "",
+        contactAddress: "",
+        contactInfoVisible: false,
         isVisible: aboutPageData.isVisible ?? true,
       });
     }
@@ -117,11 +116,6 @@ export default function AboutPage() {
       formData.teamTitle !== (aboutPageData.teamTitle || "") ||
       formData.teamDescription !== (aboutPageData.teamDescription || "") ||
       formData.teamVisible !== (aboutPageData.teamVisible ?? true) ||
-      formData.contactPhone !== (aboutPageData.contactPhone || "") ||
-      formData.contactEmail !== (aboutPageData.contactEmail || "") ||
-      formData.contactAddress !== (aboutPageData.contactAddress || "") ||
-      formData.contactInfoVisible !==
-        (aboutPageData.contactInfoVisible ?? true) ||
       formData.isVisible !== (aboutPageData.isVisible ?? true) ||
       selectedMainImage !== null
     );
@@ -166,13 +160,7 @@ export default function AboutPage() {
         teamTitle: formData.teamTitle,
         teamDescription: formData.teamDescription,
         teamVisible: formData.teamVisible,
-        contactPhone: formData.contactPhone,
-        contactEmail: formData.contactEmail,
-        contactAddress: formData.contactAddress,
-        contactInfoVisible: formData.contactInfoVisible,
         isVisible: formData.isVisible,
-        // Don't send teamMembers when updating other fields
-        // This prevents issues with imageUrl field
         teamMembers: undefined,
       });
 
@@ -249,10 +237,6 @@ export default function AboutPage() {
           <TabsTrigger value="team" className="w-full sm:w-auto">
             <UsersIcon className="h-4 w-4 ml-2" />
             فريق العمل
-          </TabsTrigger>
-          <TabsTrigger value="contact" className="w-full sm:w-auto">
-            <PhoneIcon className="h-4 w-4 ml-2" />
-            معلومات الاتصال
           </TabsTrigger>
         </TabsList>
 
@@ -482,81 +466,6 @@ export default function AboutPage() {
                   toast.success("تم تحديث الفريق بنجاح");
                 }}
               />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Contact Information Tab */}
-        <TabsContent value="contact">
-          <Card>
-            <CardHeader>
-              <div className="flex flex-col sm:flex-row gap-5 sm:items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold">معلومات الاتصال</h3>
-                  <p className="text-sm text-muted-foreground">
-                    قم بتعديل معلومات الاتصال التي ستظهر في صفحة من نحن
-                  </p>
-                </div>
-                <Button
-                  variant={formData.contactInfoVisible ? "default" : "outline"}
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      contactInfoVisible: !prev.contactInfoVisible,
-                    }))
-                  }
-                  className="w-full sm:w-auto gap-2"
-                  size="sm"
-                >
-                  {formData.contactInfoVisible ? (
-                    <>
-                      <EyeIcon className="h-4 w-4" />
-                      ظاهر
-                    </>
-                  ) : (
-                    <>
-                      <EyeOffIcon className="h-4 w-4" />
-                      مخفي
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">رقم الهاتف</label>
-                <Input
-                  name="contactPhone"
-                  value={formData.contactPhone}
-                  onChange={handleChange}
-                  placeholder="أدخل رقم الهاتف"
-                  dir="ltr"
-                  className="text-right"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">البريد الإلكتروني</label>
-                <Input
-                  name="contactEmail"
-                  value={formData.contactEmail}
-                  onChange={handleChange}
-                  placeholder="أدخل البريد الإلكتروني"
-                  dir="ltr"
-                  className="text-right"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">العنوان</label>
-                <Textarea
-                  name="contactAddress"
-                  value={formData.contactAddress}
-                  onChange={handleChange}
-                  placeholder="أدخل العنوان"
-                  rows={3}
-                />
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
