@@ -2,13 +2,19 @@ import { toast } from "sonner";
 import { Upload } from "lucide-react";
 import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
 
 interface ImageUploadProps {
   onFileSelect: (file: File) => void;
   className?: string;
+  defaultImage?: string;
 }
 
-export function ImageUpload({ onFileSelect, className }: ImageUploadProps) {
+export function ImageUpload({
+  onFileSelect,
+  className,
+  defaultImage,
+}: ImageUploadProps) {
   const [isLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,6 +39,42 @@ export function ImageUpload({ onFileSelect, className }: ImageUploadProps) {
     fileInputRef.current?.click();
   };
 
+  // If a default image is provided, show it with a button overlay
+  if (defaultImage) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="w-full h-full flex items-center justify-center overflow-hidden rounded-md">
+          <Image
+            src={defaultImage}
+            alt="Default icon"
+            width={48}
+            height={48}
+            className="object-contain w-full h-full"
+          />
+        </div>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleFileChange}
+          disabled={isLoading}
+        />
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="absolute bottom-0 right-0 w-full h-full opacity-0 hover:opacity-80 transition-opacity bg-background/80 rounded-md"
+          disabled={isLoading}
+          onClick={handleButtonClick}
+        >
+          <Upload className="h-4 w-4" />
+        </Button>
+      </div>
+    );
+  }
+
+  // Default button view when no image is provided
   return (
     <div className={className}>
       <input

@@ -270,6 +270,33 @@ export default defineSchema({
     // Add other settings fields as needed
   }),
 
+  footer: defineTable({
+    storeName: v.string(),
+    description: v.string(),
+    socialLinks: v.array(
+      v.object({
+        name: v.string(),
+        image: v.union(v.string(), v.id("_storage"), v.null()),
+        url: v.string(),
+        order: v.number(),
+      })
+    ),
+    footerLinks: v.array(
+      v.object({
+        title: v.string(),
+        links: v.array(
+          v.object({
+            label: v.string(),
+            href: v.string(),
+            order: v.number(),
+            image: v.optional(v.union(v.string(), v.id("_storage"), v.null())),
+          })
+        ),
+        order: v.number(),
+      })
+    ),
+  }),
+
   orders: defineTable({
     userId: v.id("users"),
     orderNumber: v.string(),

@@ -20,6 +20,7 @@ import type * as contact from "../contact.js";
 import type * as coupons from "../coupons.js";
 import type * as features from "../features.js";
 import type * as files from "../files.js";
+import type * as footer from "../footer.js";
 import type * as header from "../header.js";
 import type * as hero from "../hero.js";
 import type * as http from "../http.js";
@@ -49,6 +50,7 @@ declare const fullApi: ApiFromModules<{
   coupons: typeof coupons;
   features: typeof features;
   files: typeof files;
+  footer: typeof footer;
   header: typeof header;
   hero: typeof hero;
   http: typeof http;
