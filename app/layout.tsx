@@ -7,6 +7,7 @@ import { ConvexClientProvider } from "./convex-client-provider";
 import { WishlistProvider } from "@/contexts/wishlist-context";
 import { CartProvider } from "@/contexts/cart-context";
 import { StripeProvider } from "./providers/stripe-provider";
+import { ViewTracker } from "./components/analytics/view-tracker";
 
 const elMessiri = El_Messiri({
   variable: "--font-el-messiri",
@@ -31,6 +32,7 @@ export default function RootLayout({
             <WishlistProvider>
               <CartProvider>
                 <StripeProvider>
+                  <ViewTracker />
                   {children}
                   <Toaster
                     richColors

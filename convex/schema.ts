@@ -335,4 +335,19 @@ export default defineSchema({
     selectedColor: v.optional(v.string()),
     total: v.number(),
   }).index("by_order", ["orderId"]),
+
+  websiteViews: defineTable({
+    date: v.string(),
+    count: v.number(),
+    uniqueCount: v.number(),
+    updatedAt: v.string(),
+  }).index("by_date", ["date"]),
+
+  visitorSessions: defineTable({
+    visitorId: v.string(),
+    lastVisitDate: v.string(), // YYYY-MM-DD format
+    lastVisitTimestamp: v.string(), // ISO string for precise timing
+    isAuthenticated: v.boolean(),
+    userId: v.optional(v.id("users")),
+  }).index("by_visitor_id", ["visitorId"]),
 });

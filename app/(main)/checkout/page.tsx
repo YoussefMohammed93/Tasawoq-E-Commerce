@@ -1304,7 +1304,7 @@ export default function CheckoutPage() {
                                     تم التأكيد
                                   </span>
                                 </div>
-                                <div className="flex-1 h-1 bg-primary/20 mx-2 relative">
+                                <div className="flex-1 h-1 bg-primary/20 mx-2 relative" dir="rtl">
                                   <div className="absolute inset-0 bg-primary w-0 animate-progress-25"></div>
                                 </div>
                                 <div className="text-center">

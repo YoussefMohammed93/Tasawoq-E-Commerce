@@ -47,10 +47,6 @@ export default function AboutPage() {
     teamTitle: "",
     teamDescription: "",
     teamVisible: true,
-    contactPhone: "",
-    contactEmail: "",
-    contactAddress: "",
-    contactInfoVisible: true,
     isVisible: true,
   });
 
@@ -78,10 +74,6 @@ export default function AboutPage() {
         teamTitle: aboutPageData.teamTitle || "",
         teamDescription: aboutPageData.teamDescription || "",
         teamVisible: aboutPageData.teamVisible ?? true,
-        contactPhone: "",
-        contactEmail: "",
-        contactAddress: "",
-        contactInfoVisible: false,
         isVisible: aboutPageData.isVisible ?? true,
       });
     }

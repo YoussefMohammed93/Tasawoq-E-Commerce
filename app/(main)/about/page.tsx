@@ -117,29 +117,6 @@ export default function AboutPage() {
               </div>
             </div>
           </section>
-
-          {/* Contact Information Skeleton */}
-          <section className="py-12 bg-muted/50">
-            <div className="max-w-7xl mx-auto px-5">
-              <div className="text-center mb-12">
-                <Skeleton className="h-8 w-64 mx-auto mb-2" />
-                <Skeleton className="h-5 w-96 mx-auto" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[1, 2, 3].map((item) => (
-                  <Card key={item} className="text-center">
-                    <CardContent className="pt-6">
-                      <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                        <Skeleton className="h-8 w-8 rounded-full" />
-                      </div>
-                      <Skeleton className="h-6 w-32 mx-auto mb-4" />
-                      <Skeleton className="h-4 w-40 mx-auto" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </section>
         </main>
         <Footer />
       </>
@@ -253,29 +230,6 @@ export default function AboutPage() {
                       <Skeleton className="h-3 w-3/4 mx-auto" />
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Contact Information Skeleton */}
-          <section className="py-12 bg-muted/50">
-            <div className="max-w-7xl mx-auto px-5">
-              <div className="text-center mb-12">
-                <Skeleton className="h-8 w-64 mx-auto mb-2" />
-                <Skeleton className="h-5 w-96 mx-auto" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {[1, 2, 3].map((item) => (
-                  <Card key={item} className="text-center">
-                    <CardContent className="pt-6">
-                      <div className="bg-primary/10 p-4 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
-                        <Skeleton className="h-8 w-8 rounded-full" />
-                      </div>
-                      <Skeleton className="h-6 w-32 mx-auto mb-4" />
-                      <Skeleton className="h-4 w-40 mx-auto" />
-                    </CardContent>
-                  </Card>
                 ))}
               </div>
             </div>

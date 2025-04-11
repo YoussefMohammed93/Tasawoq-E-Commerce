@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { Id } from "./_generated/dataModel";
 
 // Get all products with their images URLs
 export const getProducts = query({
@@ -17,6 +18,59 @@ export const getProducts = query({
         ),
       }))
     );
+  },
+});
+
+// Get top selling products based on order items
+export const getTopSellingProducts = query({
+  handler: async (ctx) => {
+    // Get all order items
+    const orderItems = await ctx.db.query("orderItems").collect();
+
+    // Count sales for each product
+    const productSales: Record<
+      string,
+      { productId: Id<"products">; totalQuantity: number; totalRevenue: number }
+    > = {};
+
+    for (const item of orderItems) {
+      const productId = item.productId;
+      const productIdStr = productId.toString();
+
+      if (!productSales[productIdStr]) {
+        productSales[productIdStr] = {
+          productId,
+          totalQuantity: 0,
+          totalRevenue: 0,
+        };
+      }
+
+      productSales[productIdStr].totalQuantity += item.quantity;
+      productSales[productIdStr].totalRevenue += item.total;
+    }
+
+    // Convert to array and sort by quantity sold
+    const sortedProducts = Object.values(productSales).sort(
+      (a, b) => b.totalQuantity - a.totalQuantity
+    );
+
+    // Get the top 4 products with details
+    const topProducts = [];
+
+    for (const productSale of sortedProducts.slice(0, 4)) {
+      const product = await ctx.db.get(productSale.productId);
+      if (product && "name" in product && "mainImage" in product) {
+        topProducts.push({
+          id: product._id,
+          name: product.name,
+          sales: productSale.totalQuantity,
+          revenue: productSale.totalRevenue,
+          mainImageUrl: await ctx.storage.getUrl(product.mainImage),
+        });
+      }
+    }
+
+    return topProducts;
   },
 });
 
